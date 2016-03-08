@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VX_Kinect_Prototype", "VX_K
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Networking_Prototype", "Networking_Prototype\Networking_Prototype.vcxproj", "{72ADA73F-102E-4B30-93D2-AF8BF6F463BA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{4D5956EB-FAC9-4D79-97F3-942AFD98885B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
