@@ -69,7 +69,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Work\Libs\glew-1.13.0\include;C:\Work\Libs\glfw-3.1.2.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Work\Libs\glew-1.13.0\lib\Release\x64;C:\Work\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\Work\Libs\glew-1.13.0\include;C:\Work\Libs\glfw-3.1.2.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Work\Libs\glew-1.13.0\lib\Release\x64;C:\Work\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -128,6 +135,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BaseWindow.h" />
+    <ClInclude Include="GLEWWrapper.h" />
+    <ClInclude Include="GLFWStereoWindow.h" />
+    <ClInclude Include="GLFWWindow.h" />
+    <ClInclude Include="GLFWWrapper.h" />
+    <ClInclude Include="OpenGLRuntimeError.h" />
+    <ClInclude Include="OpenGLShader.h" />
+    <ClInclude Include="VX_Window_Lib.h" />
+    <ClInclude Include="VX_Window_RunTimeError.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BaseWindow.cpp" />
+    <ClCompile Include="GLEWWrapper.cpp" />
+    <ClCompile Include="GLFWStereoWindow.cpp" />
+    <ClCompile Include="GLFWWindow.cpp" />
+    <ClCompile Include="GLFWWrapper.cpp" />
+    <ClCompile Include="OpenGLRuntimeError.cpp" />
+    <ClCompile Include="OpenGLShader.cpp" />
+    <ClCompile Include="VX_Window_RunTimeError.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
