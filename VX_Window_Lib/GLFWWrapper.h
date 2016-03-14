@@ -1,11 +1,8 @@
 #pragma once
 
-#include <exception>
-#include <memory>
-
-#include <GLFW/glfw3.h>
-
 #include "VX_Window_RunTimeError.h"
+#include <GLFW/glfw3.h>
+#include <memory>
 
 namespace vx_window_namespace_ {
 
@@ -21,6 +18,7 @@ namespace vx_window_namespace_ {
 		GLFWWrapper();
 
 		bool initialized_;
+		bool voidBool;
 	};
 
 }

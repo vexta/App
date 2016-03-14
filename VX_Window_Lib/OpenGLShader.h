@@ -1,5 +1,9 @@
 #pragma once
 
+#include "GLEWWrapper.h"
+#include "VX_Window_RunTimeError.h"
+#include "OpenGLRuntimeError.h"
+
 #include <iostream>
 #include <stdexcept>
 #include <memory>
@@ -7,10 +11,6 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
-
-#include "GLEWWrapper.h"
-#include "VX_Window_RunTimeError.h"
-#include "OpenGLRuntimeError.h"
 
 namespace vx_opengl_namespace_ {
 

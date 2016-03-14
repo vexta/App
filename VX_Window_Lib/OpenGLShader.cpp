@@ -1,6 +1,7 @@
 #include "OpenGLShader.h"
 
-
+#include <Windows.h>
+#include <iostream>
 
 vx_opengl_namespace_::OpenGLShader::OpenGLShader()
 {
@@ -28,6 +29,11 @@ void vx_opengl_namespace_::OpenGLShader::attachShader(const std::string & code, 
 
 void vx_opengl_namespace_::OpenGLShader::attachShaderFile(const std::string & path, GLenum type)
 {
+	WCHAR result[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, result);
+
+	std::wcout << result << std::endl;
+
 	std::ifstream file;
 	file.exceptions(std::ifstream::badbit);
 	try {
@@ -53,10 +59,15 @@ void vx_opengl_namespace_::OpenGLShader::compileAndLink()
 	glLinkProgram(glId_);
 	glGetProgramiv(glId_, GL_LINK_STATUS, &result);
 
-	if (result) {
+	if (result == GL_FALSE) {
 		GLchar log[512];
 		glGetProgramInfoLog(glId_, 512, NULL, log);
 		throw OpenGLRuntimeError(log);
+	}
+	else {
+		GLchar log[512];
+		glGetProgramInfoLog(glId_, 512, NULL, log);
+		std::cout << log << std::endl;
 	}
 	lineked_ = !(bool)result;
 }
@@ -81,9 +92,11 @@ GLuint vx_opengl_namespace_::OpenGLShader::compileShader(const char * code, GLen
 	glCompileShader(type);
 	glGetShaderiv(glid, GL_COMPILE_STATUS, &result);
 
-	if (result) {
+	if (result == GL_FALSE) {
 		GLchar log[512];
 		glGetShaderInfoLog(glid, 512, NULL, log);
+		std::cout << log << std::endl;	
+		std::cout.flush();
 		throw OpenGLRuntimeError(log);
 	}
 	return glid;

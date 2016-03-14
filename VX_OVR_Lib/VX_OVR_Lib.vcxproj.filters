@@ -38,9 +38,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OVRWrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VX_OVR_RunTimeError.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

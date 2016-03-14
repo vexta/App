@@ -71,5 +71,8 @@
     <ClCompile Include="OpenGLRuntimeError.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\VX_OVR_Lib\OVRWrapper.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

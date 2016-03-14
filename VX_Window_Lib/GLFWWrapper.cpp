@@ -1,7 +1,6 @@
 #include "GLFWWrapper.h"
 
 
-
 std::shared_ptr<vx_window_namespace_::GLFWWrapper> vx_window_namespace_::GLFWWrapper::getInstance()
 {
 	static std::shared_ptr<GLFWWrapper> instance(new GLFWWrapper());

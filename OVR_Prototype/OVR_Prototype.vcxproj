@@ -74,16 +74,16 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Work\Libs\glew-1.13.0\include;C:\Work\Libs\glfw-3.1.2.bin.WIN64\include;C:\Users\sh\Source\Repos\App\App\VX_Window_Lib;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Work\Libs\glew-1.13.0\lib\Release\x64;C:\Work\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Libs\glew-1.13.0\lib\Release\x64;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Work\Libs\glew-1.13.0\include;C:\Work\Libs\glfw-3.1.2.bin.WIN64\include;C:\Users\sh\Source\Repos\App\App\VX_Window_Lib;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Work\Libs\glew-1.13.0\lib\Release\x64;C:\Work\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Libs\glew-1.13.0\lib\Release\x64;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -153,6 +153,9 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\VX_OVR_Lib\VX_OVR_Lib.vcxproj">
+      <Project>{84f8e4a1-037f-4e72-8382-bd648d48b81b}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\VX_Window_Lib\VX_Window_Lib.vcxproj">
       <Project>{cd98d8be-4b8c-4d00-b952-af70e6ae7442}</Project>
     </ProjectReference>

@@ -1,26 +1,33 @@
+#include <VX_OVR_Lib.h>
 #include <iostream>
-#include <VX_Window_Lib.h>
+
+void init() {
+
+}
+
+void render() {
+
+}
+
 
 int main() {
-	vxWnd::OpenGLWindow wnd;
-
-	auto keyCallback = [&wnd](int key, int action) {
-		if (key == GLFW_KEY_ESCAPE)
-			wnd.destroy();
-	};
-
-	auto mouseCallback = [&wnd](double xpos, double ypos) {
-		std::cout << xpos << "\t" << ypos << std::endl;
-	};
-
-	wnd.setKeyCallback(keyCallback);
-	wnd.setMousePosCallback(mouseCallback);
+	vxWnd::OpenGLStereoWindow wnd;
 	wnd.create();
+	
+	std::pair<GLuint, GLuint> fbLeft = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(800, 600);
+	std::pair<GLuint, GLuint> fbRight = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(800, 600);
+	
 
 	while (!wnd.shouldClose()) {
-		wnd.update();
-	};
+		glBindFramebuffer(GL_FRAMEBUFFER, fbLeft.first);
+		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-	std::cout << "hello oculus" << std::endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, fbRight.first);
+		glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		wnd.update(fbLeft.second, fbRight.second);
+	}
 	return 0;
 }

@@ -1,7 +1,5 @@
 #include "BaseWindow.h"
 
-
-
 vx_window_namespace_::BaseWindow::BaseWindow() :
 	width_(800),
 	height_(600),

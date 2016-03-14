@@ -4,7 +4,9 @@
 
 #include <OVR_CAPI.h>
 
-typedef int OVRHMDHandle;
+#include "OVRHMDHandle.h"
+#include "OVRHMDHandleNoDevice.h"
+#include "OVRHMDHandleWithDevice.h"
 
 namespace vx_ovr_namespace_ {
 
@@ -15,13 +17,20 @@ namespace vx_ovr_namespace_ {
 
 		void initialize();
 		bool isInitialized();
+		void shutDown();
+
+		std::shared_ptr<OVRHMDHandle> getOVRHMDDeviceHandle();
 
 		static std::shared_ptr<OVRWrapper> getInstance();
-		static std::shared_ptr<OVRHMDHandle> getOVRDeviceHandle();
 	private:
 		OVRWrapper();
 
 		bool initialized_;
+		bool useRealHMD_;
+
+		int operator +(int) {
+
+		}
 	};
 
 };

@@ -11,8 +11,17 @@ vx_ovr_namespace_::OVRHMDHandleNoDevice::~OVRHMDHandleNoDevice()
 {
 }
 
+void vx_ovr_namespace_::OVRHMDHandleNoDevice::initialize()
+{
+	window_->create();
+	std::pair<GLuint, GLuint> fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(description_.Resolution.w, description_.Resolution.h);
+}
+
 OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const
 {
+	ovrPosef *eyeRenderPosef;
+	float user_height_;
+
 	OVR::Vector3f position(pos_x, pos_y, pos_z);
 	position.y += user_height_;
 

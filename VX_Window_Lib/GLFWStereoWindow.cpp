@@ -1,7 +1,5 @@
 #include "GLFWStereoWindow.h"
 
-
-
 vx_window_namespace_::GLFWStereoWindow::GLFWStereoWindow()
 {
 }
@@ -18,10 +16,10 @@ vx_window_namespace_::GLFWStereoWindow::~GLFWStereoWindow()
 
 void vx_window_namespace_::GLFWStereoWindow::create()
 {
-	GLFWWindow create();
+	GLFWWindow::create();
 	quadShader_.create();
-	quadShader_.attachShaderFile("..//resources//GLFWStereoWindow//quad_vertex.vertex", GL_VERTEX_SHADER);
-	quadShader_.attachShaderFile("..//resources//GLFWStereoWindow//quad_shader.fragment", GL_FRAGMENT_SHADER);
+	quadShader_.attachShaderFile("..//Resources//GLFWStereoWindow//window_quad_vertex", GL_VERTEX_SHADER);
+	quadShader_.attachShaderFile("..//Resources//GLFWStereoWindow//window_quad_fragment", GL_FRAGMENT_SHADER);
 	quadShader_.compileAndLink();
 
 	GLfloat quadVertices[] = {   // Vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
@@ -55,6 +53,7 @@ void vx_window_namespace_::GLFWStereoWindow::update(GLuint leftTexture, GLuint r
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+
 	glUseProgram(quadShader_);
 	glBindVertexArray(quadVAO_);
 
@@ -69,6 +68,10 @@ void vx_window_namespace_::GLFWStereoWindow::update(GLuint leftTexture, GLuint r
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	
 	glBindVertexArray(0);
+
+	/*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);*/
 
 	GLFWWindow::update();
 }

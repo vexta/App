@@ -1,7 +1,5 @@
 #include "GLFWWindow.h"
 
-
-
 vx_window_namespace_::GLFWWindow::GLFWWindow()
 {
 }

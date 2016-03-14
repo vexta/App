@@ -1,13 +1,16 @@
 #pragma once
 
+#include "VX_OVR_RunTimeError.h"
+#include <VX_Window_Lib.h>
+
+#define GLEW_STATIC
 #include <GL/glew.h>
+#include <OVR_CAPI.h>
+#include <Extras\OVR_Math.h>
 
 #include <string>
 #include <memory>
 #include <functional>
-
-#include <OVR_CAPI.h>
-#include <Extras\OVR_Math.h>
 
 
 namespace vx_ovr_namespace_ {
