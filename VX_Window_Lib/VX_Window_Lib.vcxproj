@@ -148,7 +148,6 @@
     <ClInclude Include="VX_Window_RunTimeError.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\VX_OVR_Lib\OVRWrapper.cpp" />
     <ClCompile Include="BaseWindow.cpp" />
     <ClCompile Include="GLEWWrapper.cpp" />
     <ClCompile Include="GLFWStereoWindow.cpp" />
