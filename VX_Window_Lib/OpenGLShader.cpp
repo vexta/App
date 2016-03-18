@@ -91,7 +91,17 @@ void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & nam
 
 void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLuint valueA, const GLuint valueB)
 {
-	glUniform2ui(getUniformLocation(name), valueA, valueB)
+	glUniform2ui(getUniformLocation(name), valueA, valueB);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLuint valueA, const GLuint valueB, const GLuint valueC)
+{
+	glUniform3ui(getUniformLocation(name), valueA, valueB, valueC);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLuint valueA, const GLuint valueB, const GLuint valueC, const GLuint valueD)
+{
+	glUniform4ui(getUniformLocation(name), valueA, valueB, valueC, valueD);
 }
 
 void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLint value)
@@ -99,20 +109,150 @@ void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & nam
 	glUniform1i(getUniformLocation(name), value);
 }
 
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLint valueA, const GLint valueB)
+{
+	glUniform2i(getUniformLocation(name), valueA, valueB);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLint valueA, const GLint valueB, const GLint valueC)
+{
+	glUniform3i(getUniformLocation(name), valueA, valueB, valueC);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLint valueA, const GLint valueB, const GLint valueC, const GLint valueD)
+{
+	glUniform4i(getUniformLocation(name), valueA, valueB, valueC, valueD);
+}
+
 void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLfloat value)
 {
 	glUniform1f(getUniformLocation(name), value);
 }
 
-void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLdouble value)
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLfloat valueA, const GLfloat valueB)
 {
-	glUniform1d(getUniformLocation(name), value);
+	glUniform2f(getUniformLocation(name), valueA, valueB);
 }
 
-void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLsizei count, const GLfloat * value)
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLfloat valueA, const GLfloat valueB, const GLfloat valueC)
 {
-
+	glUniform3f(getUniformLocation(name), valueA, valueB, valueC);
 }
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLfloat valueA, const GLfloat valueB, const GLfloat valueC, const GLfloat valueD)
+{
+	glUniform4f(getUniformLocation(name), valueA, valueB, valueC, valueD);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec1(const std::string & name, const GLsizei count, const GLuint * value)
+{
+	glUniform1uiv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec2(const std::string & name, const GLsizei count, const GLuint * value)
+{
+	glUniform2uiv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec3(const std::string & name, const GLsizei count, const GLuint * value)
+{
+	glUniform3uiv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec4(const std::string & name, const GLsizei count, const GLuint * value)
+{
+	glUniform4uiv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec1(const std::string & name, const GLsizei count, const GLint * value)
+{
+	glUniform1iv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec2(const std::string & name, const GLsizei count, const GLint * value)
+{
+	glUniform2iv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec3(const std::string & name, const GLsizei count, const GLint * value)
+{
+	glUniform3iv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec4(const std::string & name, const GLsizei count, const GLint * value)
+{
+	glUniform4iv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec1(const std::string & name, const GLsizei count, const GLfloat * value)
+{
+	glUniform1fv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec2(const std::string & name, const GLsizei count, const GLfloat * value)
+{
+	glUniform2fv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec3(const std::string & name, const GLsizei count, const GLfloat * value)
+{
+	glUniform3fv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueVec4(const std::string & name, const GLsizei count, const GLfloat * value)
+{
+	glUniform4fv(getUniformLocation(name), count, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat2(const std::string & name, const GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix2fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat3(const std::string & name, const GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix3fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUnifromValueMat4(const std::string & name, const GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix4fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat2x3(const std::string & name, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix2x3fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat3x2(const std::string & name, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix3x2fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat2x4(const std::string & name, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix2x4fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat4x2(const std::string & name, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix4x2fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat3x4(const std::string & name, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix3x4fv(getUniformLocation(name), count, transpose, value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat4x3(const std::string & name, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	glUniformMatrix4x3fv(getUniformLocation(name), count, transpose, value);
+}
+
+
+
+
+
 
 vx_opengl_namespace_::OpenGLShader::operator GLuint()
 {

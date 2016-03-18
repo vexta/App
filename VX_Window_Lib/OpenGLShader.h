@@ -58,17 +58,17 @@ namespace vx_opengl_namespace_ {
 		void setUniformValueVec3(const std::string &name, const GLsizei count, const GLfloat *value);
 		void setUniformValueVec4(const std::string &name, const GLsizei count, const GLfloat *value);
 
-		void setUniformValueMat2(const std::string &name, const GLsizei count, GLboolean transpose, const GLuint *value);
-		void setUniformValueMat3(const std::string &name, const GLsizei count, GLboolean transpose, const GLuint *value);
-		void setUnifromValueMat4(const std::string &name, const GLsizei count, GLboolean transpose, const GLuint *value);
-
-		void setUniformValueMat2(const std::string &name, const GLsizei count, GLboolean transpose, const GLint *value);
-		void setUniformValueMat3(const std::string &name, const GLsizei count, GLboolean transpose, const GLint *value);
-		void setUnifromValueMat4(const std::string &name, const GLsizei count, GLboolean transpose, const GLint *value);
-
+		
 		void setUniformValueMat2(const std::string &name, const GLsizei count, GLboolean transpose, const GLfloat *value);
 		void setUniformValueMat3(const std::string &name, const GLsizei count, GLboolean transpose, const GLfloat *value);
 		void setUnifromValueMat4(const std::string &name, const GLsizei count, GLboolean transpose, const GLfloat *value);
+
+		void setUniformValueMat2x3(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
+		void setUniformValueMat3x2(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
+		void setUniformValueMat2x4(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
+		void setUniformValueMat4x2(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
+		void setUniformValueMat3x4(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
+		void setUniformValueMat4x3(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
 
 		/* FUTURE PLANS
 		void collectAllUniforms();
