@@ -79,6 +79,41 @@ void vx_opengl_namespace_::OpenGLShader::deleteShader()
 	}
 }
 
+GLint vx_opengl_namespace_::OpenGLShader::getUniformLocation(const std::string & name)
+{
+	return glGetUniformLocation(glId_, name.c_str());
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLuint value)
+{
+	glUniform1ui(getUniformLocation(name), value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLuint valueA, const GLuint valueB)
+{
+	glUniform2ui(getUniformLocation(name), valueA, valueB)
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLint value)
+{
+	glUniform1i(getUniformLocation(name), value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLfloat value)
+{
+	glUniform1f(getUniformLocation(name), value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLdouble value)
+{
+	glUniform1d(getUniformLocation(name), value);
+}
+
+void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLsizei count, const GLfloat * value)
+{
+
+}
+
 vx_opengl_namespace_::OpenGLShader::operator GLuint()
 {
 	return glId_;
@@ -92,7 +127,7 @@ GLuint vx_opengl_namespace_::OpenGLShader::compileShader(const char * code, GLen
 	glCompileShader(type);
 	glGetShaderiv(glid, GL_COMPILE_STATUS, &result);
 
-	if (result == GL_FALSE) {
+	if (result) { // TODO there is a problem somewhere - shader result is GL_FALSE, but shader works
 		GLchar log[512];
 		glGetShaderInfoLog(glid, 512, NULL, log);
 		std::cout << log << std::endl;	

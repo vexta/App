@@ -74,7 +74,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Libs\glm\;$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Libs\glew-1.13.0\lib\Release\x64;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -82,7 +82,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Libs\glm\;$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Libs\glew-1.13.0\lib\Release\x64;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -11,10 +11,34 @@ vx_ovr_namespace_::OVRHMDHandleNoDevice::~OVRHMDHandleNoDevice()
 {
 }
 
+void vx_ovr_namespace_::OVRHMDHandleNoDevice::setWindowParams(const unsigned short width, const unsigned short height, const std::string & title)
+{
+	window_ = std::make_shared<vxWnd::OpenGLStereoWindow>(width, height, title);
+}
+
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::initialize()
 {
 	window_->create();
-	std::pair<GLuint, GLuint> fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(description_.Resolution.w, description_.Resolution.h);
+
+	// initialize framebuffer
+	// TODO texture size should be determined from description
+	std::pair<GLuint, GLuint> fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(description_.Resolution.w / 2, description_.Resolution.h);
+	leftFbo_ = fbo.first;
+	leftTexture_ = fbo.second;
+
+	fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(description_.Resolution.w / 2, description_.Resolution.h);
+	rightFbo_ = fbo.first;
+	rightTexture_ = fbo.second;
+}
+
+GLuint vx_ovr_namespace_::OVRHMDHandleNoDevice::prepareFramebuffer(ovrEyeType eye)
+{
+	return eye == ovrEye_Left ? leftFbo_ : rightFbo_;
+}
+
+void vx_ovr_namespace_::OVRHMDHandleNoDevice::submitFrame()
+{
+	window_->update(leftTexture_, rightTexture_);
 }
 
 OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const
@@ -38,6 +62,11 @@ OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getProjectionMatrix(ovrEr
 {
 	// TODO projection near and far plane?
 	return ovrMatrix4f_Projection(description_.DefaultEyeFov[eye], 0.2f, 1000.0f, ovrProjection_RightHanded);
+}
+
+void vx_ovr_namespace_::OVRHMDHandleNoDevice::setViewport() const
+{
+	glViewport(0, 0, window_->getWidth() / 2, window_->getHeight());
 }
 
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::setKeyCallback(std::function<void(int, int)> keyCallback)

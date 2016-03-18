@@ -3,6 +3,7 @@
 #include "BaseWindow.h"
 #include "VX_Window_RunTimeError.h"
 
+
 namespace vxWnd = vx_window_namespace_;
 
 #define VX_GLEW_GLFW
@@ -14,9 +15,13 @@ namespace vxWnd = vx_window_namespace_;
 
 #include "GLEWWrapper.h"
 #include "OpenGLRuntimeError.h"
+#include "OpenGLShader.h"
+
 #include "GLFWWrapper.h"
 #include "GLFWWindow.h"
 #include "GLFWStereoWindow.h"
+
+namespace vxOpenGL = vx_opengl_namespace_;
 
 namespace vx_window_namespace_ {
 	typedef GLFWWindow OpenGLWindow;
