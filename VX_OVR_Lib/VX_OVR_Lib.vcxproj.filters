@@ -18,13 +18,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OVRWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VX_OVR_Lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VX_OVR_RunTimeError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OVRHMDHandleNoDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OVRHMDHandle.h">
@@ -33,7 +33,7 @@
     <ClInclude Include="OVRHMDHandleWithDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OVRHMDHandleNoDevice.h">
+    <ClInclude Include="OVRWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -48,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OVRWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OVRHMDHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

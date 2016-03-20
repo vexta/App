@@ -19,7 +19,6 @@ namespace vx_ovr_namespace_ {
 	{
 	public:
 		OVRHMDHandle() { };
-		virtual ~OVRHMDHandle() = 0;
 
 		// must be called before initialize 
 		virtual void setWindowParams(const unsigned short width, const unsigned short height, const std::string &title) = 0;
@@ -29,7 +28,7 @@ namespace vx_ovr_namespace_ {
 		virtual void submitFrame() = 0;
 
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const = 0;
-		virtual OVR::Matrix4f getProjectionMatrix(ovrErrorType eye) const = 0;
+		virtual OVR::Matrix4f getProjectionMatrix(ovrEyeType eye) const;
 		virtual void setViewport() const = 0;
 		
 		virtual void setKeyCallback(std::function<void(int, int)> keyCallback) = 0;
@@ -37,6 +36,10 @@ namespace vx_ovr_namespace_ {
 
 	protected:
 		GLuint leftFbo_, rightFbo_;
+
+
+		OVR::Matrix4f projectionLeft_, projectionRight_;
+		ovrSizei texSizeLeft_, texSizeRight_;
 		ovrHmdDesc description_;
 	};
 };

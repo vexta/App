@@ -61,7 +61,7 @@ namespace vx_opengl_namespace_ {
 		
 		void setUniformValueMat2(const std::string &name, const GLsizei count, GLboolean transpose, const GLfloat *value);
 		void setUniformValueMat3(const std::string &name, const GLsizei count, GLboolean transpose, const GLfloat *value);
-		void setUnifromValueMat4(const std::string &name, const GLsizei count, GLboolean transpose, const GLfloat *value);
+		void setUniformValueMat4(const std::string &name, const GLsizei count, GLboolean transpose, const GLfloat *value);
 
 		void setUniformValueMat2x3(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
 		void setUniformValueMat3x2(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);

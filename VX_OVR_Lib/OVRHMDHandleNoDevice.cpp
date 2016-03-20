@@ -20,13 +20,15 @@ void vx_ovr_namespace_::OVRHMDHandleNoDevice::initialize()
 {
 	window_->create();
 
-	// initialize framebuffer
-	// TODO texture size should be determined from description
-	std::pair<GLuint, GLuint> fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(description_.Resolution.w / 2, description_.Resolution.h);
+	// initialize properties
+	initAsDK2();
+
+	// initialize framebuffers
+	std::pair<GLuint, GLuint> fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(texSizeLeft_.w, texSizeRight_.h);
 	leftFbo_ = fbo.first;
 	leftTexture_ = fbo.second;
 
-	fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(description_.Resolution.w / 2, description_.Resolution.h);
+	fbo = vxWnd::GLEWWrapper::generateFramebufferObjectWithTexture(texSizeRight_.w, texSizeRight_.h);
 	rightFbo_ = fbo.first;
 	rightTexture_ = fbo.second;
 }
@@ -58,15 +60,9 @@ OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType 
 	return OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
 }
 
-OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getProjectionMatrix(ovrErrorType eye) const
-{
-	// TODO projection near and far plane?
-	return ovrMatrix4f_Projection(description_.DefaultEyeFov[eye], 0.2f, 1000.0f, ovrProjection_RightHanded);
-}
-
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::setViewport() const
 {
-	glViewport(0, 0, window_->getWidth() / 2, window_->getHeight());
+	glViewport(0, 0, texSizeLeft_.w, texSizeRight_.h);
 }
 
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::setKeyCallback(std::function<void(int, int)> keyCallback)
@@ -77,4 +73,27 @@ void vx_ovr_namespace_::OVRHMDHandleNoDevice::setKeyCallback(std::function<void(
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::setMousePosCallback(std::function<void(double, double)> mousePosCallback)
 {
 	window_->setMousePosCallback(mousePosCallback);
+}
+
+void vx_ovr_namespace_::OVRHMDHandleNoDevice::initAsDK2()
+{
+	texSizeLeft_.w = 1182;
+	texSizeLeft_.h = 1464;
+	texSizeRight_.w = 1182;
+	texSizeRight_.h = 1464;
+
+	// from watches when debugging
+	description_.DefaultEyeFov[ovrEye_Left].UpTan = 1.33160317f;
+	description_.DefaultEyeFov[ovrEye_Left].DownTan = 1.33160317f;
+	description_.DefaultEyeFov[ovrEye_Left].LeftTan = 1.05865765f;
+	description_.DefaultEyeFov[ovrEye_Left].RightTan = 1.09236801f;
+
+	description_.DefaultEyeFov[ovrEye_Right].UpTan = 1.33160317f;
+	description_.DefaultEyeFov[ovrEye_Right].DownTan = 1.33160317f;
+	description_.DefaultEyeFov[ovrEye_Right].LeftTan = 1.09236801f;
+	description_.DefaultEyeFov[ovrEye_Right].RightTan = 1.05865765f;
+
+	// init projection matrix
+	projectionLeft_ = ovrMatrix4f_Projection(description_.DefaultEyeFov[ovrEye_Left], 0.2f, 1000.0f, ovrProjection_RightHanded);
+	projectionRight_ = ovrMatrix4f_Projection(description_.DefaultEyeFov[ovrEye_Right], 0.2f, 1000.0f, ovrProjection_RightHanded);
 }

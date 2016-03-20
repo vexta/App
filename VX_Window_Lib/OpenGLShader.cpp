@@ -214,7 +214,7 @@ void vx_opengl_namespace_::OpenGLShader::setUniformValueMat3(const std::string &
 	glUniformMatrix3fv(getUniformLocation(name), count, transpose, value);
 }
 
-void vx_opengl_namespace_::OpenGLShader::setUnifromValueMat4(const std::string & name, const GLsizei count, GLboolean transpose, const GLfloat * value)
+void vx_opengl_namespace_::OpenGLShader::setUniformValueMat4(const std::string & name, const GLsizei count, GLboolean transpose, const GLfloat * value)
 {
 	glUniformMatrix4fv(getUniformLocation(name), count, transpose, value);
 }

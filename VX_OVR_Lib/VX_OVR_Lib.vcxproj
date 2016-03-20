@@ -145,6 +145,7 @@
     <ClInclude Include="VX_OVR_RunTimeError.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="OVRHMDHandle.cpp" />
     <ClCompile Include="OVRHMDHandleNoDevice.cpp" />
     <ClCompile Include="OVRHMDHandleWithDevice.cpp" />
     <ClCompile Include="OVRWrapper.cpp" />
