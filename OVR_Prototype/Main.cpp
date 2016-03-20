@@ -194,10 +194,11 @@ void init() {
 
 void render(ovrEyeType eye) {
 	auto fbo = ovrHmdHandle->prepareFramebuffer(eye);
+	ovrHmdHandle->setViewport(eye);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	
-	eye == ovrEye_Left ? glClearColor(0.0f, 0.0f, 0.7f, 1.0f) : glClearColor(0.3f, 0.0f, 0.0f, 1.0f);
+	eye == ovrEye_Left ? glClearColor(0.0f, 1.0f, 0.7f, 1.0f) : glClearColor(0.3f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	

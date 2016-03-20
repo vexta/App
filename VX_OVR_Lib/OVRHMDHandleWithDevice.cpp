@@ -38,10 +38,6 @@ OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getProjectionMatrix(ovr
 	return OVR::Matrix4f();
 }
 
-void vx_ovr_namespace_::OVRHMDHandleWithDevice::setViewport() const
-{
-}
-
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::setKeyCallback(std::function<void(int, int)> keyCallback)
 {
 }

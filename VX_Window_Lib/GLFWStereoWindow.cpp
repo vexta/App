@@ -50,6 +50,7 @@ void vx_window_namespace_::GLFWStereoWindow::create()
 void vx_window_namespace_::GLFWStereoWindow::update(GLuint leftTexture, GLuint rightTexture)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, width_, height_);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 

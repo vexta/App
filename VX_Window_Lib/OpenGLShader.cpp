@@ -264,14 +264,13 @@ GLuint vx_opengl_namespace_::OpenGLShader::compileShader(const char * code, GLen
 	GLint result;
 	GLuint glid = glCreateShader(type);
 	glShaderSource(glid, 1, &code, NULL);
-	glCompileShader(type);
+	glCompileShader(glid);
 	glGetShaderiv(glid, GL_COMPILE_STATUS, &result);
 
-	if (result) { // TODO there is a problem somewhere - shader result is GL_FALSE, but shader works
+	if (result == GL_FALSE) {
 		GLchar log[512];
 		glGetShaderInfoLog(glid, 512, NULL, log);
 		std::cout << log << std::endl;	
-		std::cout.flush();
 		throw OpenGLRuntimeError(log);
 	}
 	return glid;

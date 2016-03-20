@@ -60,11 +60,6 @@ OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType 
 	return OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
 }
 
-void vx_ovr_namespace_::OVRHMDHandleNoDevice::setViewport() const
-{
-	glViewport(0, 0, texSizeLeft_.w, texSizeRight_.h);
-}
-
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::setKeyCallback(std::function<void(int, int)> keyCallback)
 {
 	window_->setKeyCallback(keyCallback);
