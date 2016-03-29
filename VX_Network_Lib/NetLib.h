@@ -4,7 +4,7 @@
 #include <iostream>
 #using   "system.dll"
 
-#define BUF_LEN 1000000
+#define BUF_LEN 1000000000
 
 using namespace System;
 using namespace System::Text;
@@ -33,6 +33,7 @@ public:
 
 	array<unsigned char>^ IR = gcnew array<unsigned char>(640 * 480);
 	array<unsigned char>^ RGB = gcnew array<unsigned char>(640 * 480 * 3);
+	//Celkova velkost objektu 1 228 852
 };
 
 
@@ -43,8 +44,10 @@ public:
 	void Send();
 	void Send(int cislo); //uint8_t cislo[]
 						  //int Get();
-	unsigned char Get();
+	int Get();
 private:
+	int SizeOfSerializedObjekt;
+	
 	array<unsigned char>^ send_buffer = gcnew array<unsigned char>(BUF_LEN);
 	array<unsigned char>^ recieve_buffer = gcnew array<unsigned char>(BUF_LEN);
 
@@ -63,7 +66,8 @@ private:
 
 	void Listen();
 	void Init();
+	void ZistiVelkostSerializovanehoObjektu();
 
-	//	Objekt^ os;
-	//	Objekt^ or;
+		Objekt^ os;
+		Objekt^ or;
 };

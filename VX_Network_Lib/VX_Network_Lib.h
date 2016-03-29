@@ -5,9 +5,7 @@
 //using namespace System;
 
 namespace VX_Network_Lib {
-
-	class __declspec(dllexport) KniznicaDLL
-	{
+	class __declspec(dllexport) KniznicaDLL {
 	public:
 		void Send();
 		void Send(int cislo);

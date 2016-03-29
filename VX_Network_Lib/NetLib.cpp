@@ -1,10 +1,25 @@
 #include "stdafx.h"
 #include "NetLib.h"
+#include <sstream>
+
+//#include "stdlib.h"
+//#include "stdio.h"
 
 using namespace System::Runtime::Serialization;
+//using namespace std;
 
 /*auto main() -> int {
 }*/
+
+void NetLib::ZistiVelkostSerializovanehoObjektu() {
+
+	System::IO::MemoryStream^ ms = gcnew System::IO::MemoryStream();
+	IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
+	formater->Serialize(ms, os);
+
+	SizeOfSerializedObjekt = ms->Length;
+
+}
 
 void NetLib::Init() {
 	IPAddress^ address;
@@ -34,13 +49,29 @@ void NetLib::Listen() {
 	IPEndPoint^ endpoint = gcnew IPEndPoint(address, 8888);
 	ssocket = gcnew Socket(endpoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
 	ssocket->Bind(endpoint);
-	ssocket->Listen(5);
+	ssocket->Listen(205);
 	csocket = ssocket->Accept();
+	csocket->ReceiveBufferSize = SizeOfSerializedObjekt;
 
 	while (1 && !ExitThread) {
-		if (csocket->Connected) {
-			size = csocket->Receive(recieve_buffer);
+		if (csocket->Connected && csocket->Available >= SizeOfSerializedObjekt) {
+
+			size = csocket->Receive(recieve_buffer, 0, SizeOfSerializedObjekt, SocketFlags::None);
+			printf("Buffer >> %d\n", size);//or->HeadTilt);
+			//csocket->
+
+				IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
+				System::IO::MemoryStream^ mms = gcnew System::IO::MemoryStream();
+				mms->Write(recieve_buffer, 0, size);
+				mms->Position = 0;
+
+				//
+
+				or = (Objekt^)formater->Deserialize(mms);
+			
+
 			//printf("Velkost prijatych dat[b]: %d\n", size);
+			printf("Prijate >> %d\n\n", size);//or->HeadTilt);
 		}
 	}
 }
@@ -50,6 +81,11 @@ NetLib::NetLib() {
 	//ip = nullptr;
 	ssocket = nullptr;
 	csocket = nullptr;
+
+	os = gcnew Objekt();
+	or = gcnew Objekt(0);
+
+	ZistiVelkostSerializovanehoObjektu();
 
 	thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen));
 	thread->Start();
@@ -69,13 +105,54 @@ NetLib::~NetLib() {
 }
 
 void NetLib::Send() {
-	//os = gcnew Object();
+	//os = gcnew Objekt();
+	//SERIAL sss;
 	//IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
 	//formater->Serialize(System::IO::Stream::,os);
 
+
+	//std::basic_ofstream;
+	//std::basic_ostringstream<unsigned char> ss;
+
+	//ss.write((unsigned char *)&sss, sizeof(sss));
+
+	/*std::ostringstream os;
+	os << "dec: " << 15 << " hex: " << std::hex << 15 << std::endl;
+	std::cout << os.str() << std::endl;*/
+
+	//printf("%d \n",sizeof(os->IR));
+
 	//lsocket->Send(send_buffer);
 	//lsocket->Send();
+
+	System::IO::MemoryStream^ ms = gcnew System::IO::MemoryStream();
+	IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
+	formater->Serialize(ms, os);
+
+
+
+
+	array<unsigned char>^ buff = gcnew array<unsigned char>(ms->Length);
+	ms->Position = 0;
+	ms->Read(buff, 0, ms->Length);
+	
+	/*System::IO::MemoryStream^ mms = gcnew System::IO::MemoryStream();
+	mms->Write(buff, 0, buff->Length);
+	ms->Position = 0;
+	mms->Position = 0;
+	or = (Objekt^)formater->Deserialize(mms);*/
+	
+	
+	
+	lsocket->Send(buff);
+	printf("Odoslane >> %d\n", ms->Length);//or->HeadTilt);
+
+
+	//lsocket->Send();
+
 }
+
+
 
 void NetLib::Send(int cislo) { //uint8_t cislo[]
 	int i = 0;
@@ -101,18 +178,19 @@ void NetLib::Send(int cislo) { //uint8_t cislo[]
 //	return size;
 //}
 
-unsigned char NetLib::Get() {
+int NetLib::Get() {
 	//int var;
 	//var = size;
 	//size = 0;
 
-	return recieve_buffer[50000];
+	return size;
 }
 
 
 
-Objekt::Objekt() {
 
+
+Objekt::Objekt() {
 	HeadTilt = 1;
 
 	HandX = 2;
@@ -131,7 +209,6 @@ Objekt::Objekt() {
 }
 
 Objekt::Objekt(int i) {
-
 	HeadTilt = i;
 
 	HandX = i;
