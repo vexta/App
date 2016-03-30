@@ -20,7 +20,7 @@ public:
 };
 
 void VX_Network_Lib::KniznicaDLL::Send() {
-	Singleton^ a = Singleton::Instance;
+	Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
 	a->abc->Send();
 }
 

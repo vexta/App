@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #include "NetLib.h"
 #include <sstream>
+#include <string.h>
 
 //#include "stdlib.h"
 //#include "stdio.h"
 
 using namespace System::Runtime::Serialization;
+using namespace System::Configuration;
 //using namespace std;
 
 /*auto main() -> int {
@@ -27,9 +29,12 @@ void NetLib::Init() {
 	//	os =  gcnew Objekt();/
 	//	or =  gcnew Objekt(0);
 
-	address = IPAddress::Parse("127.0.0.1");
+	//address = IPAddress::Parse("127.0.0.1");
+	//address = IPAddress::Parse("127.0.0.1");
+	address = IPAddress::Parse(ConfigurationSettings::AppSettings["IPAddr"]); //address = IPAddress::Parse("10.62.12.251");
+	IPEndPoint^ endPoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
 
-	IPEndPoint^ endPoint = gcnew IPEndPoint(address, 8888);
+	//IPEndPoint^ endPoint = gcnew IPEndPoint(address, 8888);
 	lsocket = gcnew Socket(endPoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
 	lsocket->Connect(endPoint);
 	if (lsocket->Connected) {
@@ -44,9 +49,9 @@ void NetLib::Listen() {
 	IPAddress^ address;
 	address = IPAddress::Any;
 
-	//address = IPAddress::Parse("127.0.0.1"); //System::Configuration::ConfigurationSettings::AppSettings["IPAddr"]); //address = IPAddress::Parse("10.62.12.251");
-
-	IPEndPoint^ endpoint = gcnew IPEndPoint(address, 8888);
+	//address = IPAddress::Parse("127.0.0.1");
+	//address = IPAddress::Parse(ConfigurationSettings::AppSettings["IPAddr"]); //address = IPAddress::Parse("10.62.12.251");
+	IPEndPoint^ endpoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
 	ssocket = gcnew Socket(endpoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
 	ssocket->Bind(endpoint);
 	ssocket->Listen(205);
@@ -105,6 +110,10 @@ NetLib::~NetLib() {
 }
 
 void NetLib::Send() {
+
+	//!!!!Unhandled Exception: System.Net.Sockets.SocketException: An existing connection was forcibly closed by the rem
+
+
 	//os = gcnew Objekt();
 	//SERIAL sss;
 	//IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
