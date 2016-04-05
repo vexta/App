@@ -1,6 +1,8 @@
 #include <VX_OVR_Lib.h>
 #include <iostream>
 
+#include "../VX_Network_Lib/VX_Network_Lib.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
