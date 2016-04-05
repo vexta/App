@@ -65,3 +65,8 @@ void vx_window_namespace_::BaseWindow::setMousePosCallback(std::function<void(do
 {
 	mousePosCallback_ = mousePosCallback;
 }
+
+void vx_window_namespace_::BaseWindow::setMouseButtonCallback(std::function<void(int, int, int)> mouseButtonCallback)
+{
+	mouseButtonCallback_ = mouseButtonCallback;
+}

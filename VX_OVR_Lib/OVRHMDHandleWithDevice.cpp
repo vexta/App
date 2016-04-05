@@ -28,12 +28,16 @@ GLuint vx_ovr_namespace_::OVRHMDHandleWithDevice::prepareFramebuffer(ovrEyeType 
 	return GLuint();
 }
 
-OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const
+void vx_ovr_namespace_::OVRHMDHandleWithDevice::submitFrame()
+{
+}
+
+OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const
 {
 	return OVR::Matrix4f();
 }
 
-OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getProjectionMatrix(ovrErrorType eye) const
+OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const
 {
 	return OVR::Matrix4f();
 }
@@ -44,4 +48,16 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::setKeyCallback(std::function<voi
 
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::setMousePosCallback(std::function<void(double, double)> mousePosCallback)
 {
+}
+
+void vx_ovr_namespace_::OVRHMDHandleWithDevice::setShouldClose(bool shouldClose)
+{
+	if (shouldClose) {
+		
+	}
+}
+
+bool vx_ovr_namespace_::OVRHMDHandleWithDevice::shouldClose()
+{
+	return false;
 }

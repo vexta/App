@@ -25,6 +25,7 @@ namespace vx_window_namespace_ {
 
 		// GLFW related functions
 		virtual void makeContexCurrent();
+		virtual GLFWwindow *getHandle();
 
 	protected:
 		GLFWwindow *wnd_handle_;
@@ -32,10 +33,12 @@ namespace vx_window_namespace_ {
 		// callback handlers
 		void selfKeyCallback(int, int, int, int);
 		void selfCursorPosCallback(double, double);
+		void selfMouseButtonCallback(int, int, int);
 
 		// real callbacks from GLFW library, GLFW can't call this.callback
 		static void staticKeyCallback(GLFWwindow*, int, int, int, int);
 		static void staticCursorPosCallback(GLFWwindow*, double, double);
+		static void staticMouseButtonCallback(GLFWwindow*, int, int, int);
 	};
 
 }

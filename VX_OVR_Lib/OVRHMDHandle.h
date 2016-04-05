@@ -27,12 +27,16 @@ namespace vx_ovr_namespace_ {
 		virtual GLuint prepareFramebuffer(ovrEyeType eye) = 0;
 		virtual void submitFrame() = 0;
 
+		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const = 0;
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const = 0;
 		virtual OVR::Matrix4f getProjectionMatrix(ovrEyeType eye) const;
 		virtual void setViewport(ovrEyeType eye) const;
 		
 		virtual void setKeyCallback(std::function<void(int, int)> keyCallback) = 0;
 		virtual void setMousePosCallback(std::function<void(double, double)> mousePosCallback) = 0;
+
+		virtual void setShouldClose(bool shouldClose) = 0;
+		virtual bool shouldClose() = 0;
 
 	protected:
 		GLuint leftFbo_, rightFbo_;

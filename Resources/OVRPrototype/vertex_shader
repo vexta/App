@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
@@ -13,9 +13,8 @@ uniform mat4 view;
 uniform mat4 model;
 
 void main() {
-	vec4 fragPos = model * vec4(position, 1.0f);
+	vec4 fragPos = model * vec4(position, 1.0);
 	vs_out.fragPos = fragPos.rgb;
 	vs_out.normal = mat3(transpose(inverse(model))) * normal;
 	gl_Position = projection * view * model * fragPos;
-	
 }

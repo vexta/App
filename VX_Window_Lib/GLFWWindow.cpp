@@ -19,8 +19,8 @@ void vx_window_namespace_::GLFWWindow::create()
 	GLFWWrapper::getInstance()->initialize();
 
 	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -34,6 +34,7 @@ void vx_window_namespace_::GLFWWindow::create()
 	glfwSetWindowUserPointer(wnd_handle_, this);
 	glfwSetKeyCallback(wnd_handle_, staticKeyCallback);
 	glfwSetCursorPosCallback(wnd_handle_, staticCursorPosCallback);
+	glfwSetMouseButtonCallback(wnd_handle_, staticMouseButtonCallback);
 
 	glfwMakeContextCurrent(wnd_handle_);
 	auto glew = GLEWWrapper::getInstance();
@@ -45,7 +46,6 @@ void vx_window_namespace_::GLFWWindow::create()
 void vx_window_namespace_::GLFWWindow::update()
 {
 	glfwPollEvents();
-	glfwSwapBuffers(wnd_handle_);
 }
 
 void vx_window_namespace_::GLFWWindow::destroy()
@@ -65,7 +65,12 @@ void vx_window_namespace_::GLFWWindow::makeContexCurrent()
 	}
 }
 
-void vx_window_namespace_::GLFWWindow::selfKeyCallback(int key, int action, int scancode, int mode)
+GLFWwindow * vx_window_namespace_::GLFWWindow::getHandle()
+{
+	return wnd_handle_;
+}
+
+void vx_window_namespace_::GLFWWindow::selfKeyCallback(int key, int scancode, int action, int mode)
 {
 	if (keyCallback_) {
 		keyCallback_(key, action);
@@ -79,6 +84,13 @@ void vx_window_namespace_::GLFWWindow::selfCursorPosCallback(double xpos, double
 	}
 }
 
+void vx_window_namespace_::GLFWWindow::selfMouseButtonCallback(int button, int action, int mods)
+{
+	if (mouseButtonCallback_) {
+		mouseButtonCallback_(button, action, mods);
+	}
+}
+
 void vx_window_namespace_::GLFWWindow::staticKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
 	static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window))->selfKeyCallback(key, scancode, action, mode);
@@ -87,4 +99,9 @@ void vx_window_namespace_::GLFWWindow::staticKeyCallback(GLFWwindow *window, int
 void vx_window_namespace_::GLFWWindow::staticCursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 {
 	static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window))->selfCursorPosCallback(xpos, ypos);
+}
+
+void vx_window_namespace_::GLFWWindow::staticMouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+{
+	static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window))->selfMouseButtonCallback(button, action, mods);
 }

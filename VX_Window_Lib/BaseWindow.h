@@ -30,6 +30,7 @@ namespace vx_window_namespace_ {
 
 		virtual void setKeyCallback(std::function<void(int, int)> keyCallback);
 		virtual void setMousePosCallback(std::function<void(double, double)> mousePosCallback);
+		virtual void setMouseButtonCallback(std::function<void(int, int, int)> mouseButtonCallback);
 		
 	protected:
 		unsigned short width_, height_;
@@ -38,6 +39,7 @@ namespace vx_window_namespace_ {
 
 		std::function<void(int, int)> keyCallback_;
 		std::function<void(double, double)> mousePosCallback_;
+		std::function<void(int, int, int)> mouseButtonCallback_;
 
 	};
 };

@@ -36,7 +36,7 @@ std::shared_ptr<vx_ovr_namespace_::OVRHMDHandle> vx_ovr_namespace_::OVRWrapper::
 {
 	initialize();
 	if (useRealHMD_) {
-		return std::shared_ptr<OVRHMDHandleNoDevice>(new OVRHMDHandleNoDevice());
+		return std::shared_ptr<OVRHMDHandleWithDevice>(new OVRHMDHandleWithDevice());
 	}
 	else {
 		return std::shared_ptr<OVRHMDHandleNoDevice>(new OVRHMDHandleNoDevice());
@@ -49,6 +49,7 @@ std::shared_ptr<vx_ovr_namespace_::OVRWrapper> vx_ovr_namespace_::OVRWrapper::ge
 	return instance;
 }
 
-vx_ovr_namespace_::OVRWrapper::OVRWrapper()
+vx_ovr_namespace_::OVRWrapper::OVRWrapper() :
+	initialized_(false), useRealHMD_(false)
 {
 }

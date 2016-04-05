@@ -1,6 +1,6 @@
 #include "OVRHMDHandleNoDevice.h"
 
-
+#include <AntTweakBar.h>
 
 vx_ovr_namespace_::OVRHMDHandleNoDevice::OVRHMDHandleNoDevice()
 {
@@ -19,6 +19,30 @@ void vx_ovr_namespace_::OVRHMDHandleNoDevice::setWindowParams(const unsigned sho
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::initialize()
 {
 	window_->create();
+
+	window_->makeContexCurrent();
+	TwInit(TW_OPENGL_CORE, NULL);
+	TwWindowSize(window_->getWidth(), window_->getHeight());
+	TwBar *quaternionGUI = TwNewBar("Head Orientation");
+	//TwSetParam(quaternionGUI, NULL, "position", TW_PARAM_CSTRING, 1, "-200 -200");
+	
+	TwAddVarRW(quaternionGUI, "Quaternion", TW_TYPE_QUAT4F, &eye_orientation_, "showval=true opened=true ");
+
+	auto mousePosCallback = [](double x, double y) {
+		if (TwEventMousePosGLFW(x, y)) {
+			return;
+		}
+	};
+
+	auto mouseButtonCallback = [](int button, int action, int mods) {
+		if (TwEventMouseButtonGLFW(button, action)) {
+			return;
+		}
+	};
+
+
+	window_->setMousePosCallback(mousePosCallback);
+	window_->setMouseButtonCallback(mouseButtonCallback);
 
 	// initialize properties
 	initAsDK2();
@@ -41,6 +65,28 @@ GLuint vx_ovr_namespace_::OVRHMDHandleNoDevice::prepareFramebuffer(ovrEyeType ey
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::submitFrame()
 {
 	window_->update(leftTexture_, rightTexture_);
+	window_->makeContexCurrent();
+	glViewport(0, 0, window_->getWidth(), window_->getHeight());
+	TwDraw();
+	glfwSwapBuffers(window_->getHandle());
+}
+
+OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const
+{
+	OVR::Vector3f shiftedEyePos;
+
+	OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(yaw);
+	OVR::Matrix4f finalRollPitchYaw = rollPitchYaw * OVR::Matrix4f(eye_orientation_); // multiply with user head orientation matrix
+	OVR::Vector3f finalUp = finalRollPitchYaw.Transform(OVR::Vector3f(0, 1, 0));
+	OVR::Vector3f finalForward = finalRollPitchYaw.Transform(OVR::Vector3f(0, 0, -1));
+	if (eye == ovrEye_Left) {
+		shiftedEyePos = position + finalRollPitchYaw.Transform((-right * 0.1f) + OVR::Vector3f(0, 1.8f, 0));
+	}
+	else {
+		shiftedEyePos = position + finalRollPitchYaw.Transform((right * 0.1f) + OVR::Vector3f(0, 1.8f, 0));
+	}
+
+	return OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
 }
 
 OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const
@@ -68,6 +114,18 @@ void vx_ovr_namespace_::OVRHMDHandleNoDevice::setKeyCallback(std::function<void(
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::setMousePosCallback(std::function<void(double, double)> mousePosCallback)
 {
 	window_->setMousePosCallback(mousePosCallback);
+}
+
+void vx_ovr_namespace_::OVRHMDHandleNoDevice::setShouldClose(bool shouldClose)
+{
+	if (shouldClose) {
+		window_->destroy();
+	}
+}
+
+bool vx_ovr_namespace_::OVRHMDHandleNoDevice::shouldClose()
+{
+	return window_->shouldClose();
 }
 
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::initAsDK2()

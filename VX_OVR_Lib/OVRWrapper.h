@@ -27,10 +27,6 @@ namespace vx_ovr_namespace_ {
 
 		bool initialized_;
 		bool useRealHMD_;
-
-		int operator +(int) {
-
-		}
 	};
 
 };
