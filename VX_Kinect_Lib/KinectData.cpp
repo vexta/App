@@ -9,10 +9,10 @@ KinectData::KinectData()
 
 KinectData::~KinectData()
 {
-	NuiFusionReleaseImageFrame(colorData);
-	NuiFusionReleaseImageFrame(depthData);
-	NuiFusionReleaseImageFrame(infraredData);
-	NuiFusionReleaseImageFrame(surfaceData);
+	if (colorData) NuiFusionReleaseImageFrame(colorData);
+	if (depthData) NuiFusionReleaseImageFrame(depthData);
+	if (infraredData) NuiFusionReleaseImageFrame(infraredData);
+	if (surfaceData) NuiFusionReleaseImageFrame(surfaceData);
 
 	for (int i = 0; i < BODY_COUNT; i++)
 	{

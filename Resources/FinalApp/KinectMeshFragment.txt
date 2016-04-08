@@ -1,0 +1,46 @@
+#version 450 core
+
+in VS_OUT {
+	vec3 fragPos;
+} fs_in;
+
+struct Light {
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+	vec3 position;
+};
+
+struct Object {
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
+out vec4 fragColor;
+
+uniform vec3 viewPos;
+uniform Light light1;
+uniform Light light2;
+uniform Object object;
+
+vec3 fragNormal;
+vec3 viewDir;
+
+vec4 blinn(Light light) {
+	vec3 lightDir = normalize(light.position - fs_in.fragPos);
+	float diff = max(dot(lightDir, fragNormal), 0.0);
+	vec3 reflectDir = reflect(-lightDir, fragNormal);
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+	float spec = pow(max(dot(fragNormal, halfwayDir), 0.0), 32.0);
+	return vec4((object.ambient + (diff * object.diffuse * light.diffuse)  + (spec * object.specular * light.specular)), 1.0);
+}
+
+
+void main() {
+    fragColor = vec4(0.3, 0.5, 0.2, 1.0);
+//	fragNormal = normalize(fs_in.normal);
+//	viewDir = normalize(viewPos - fs_in.fragPos);
+//	fragColor = blinn(light1);
+//	fragColor += blinn(light2);
+}
