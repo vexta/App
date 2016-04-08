@@ -2,7 +2,6 @@
 
 //#include "../KniznicaDLL/KniznicaDLL.h"
 
-
 #include "stdafx.h"
 #include "NetLib.h"
 #include "VX_Network_Lib.h"
@@ -20,8 +19,13 @@ public:
 };
 
 void VX_Network_Lib::KniznicaDLL::Send() {
+	//try {
 	Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
 	a->abc->Send();
+	//}
+	//catch (Exception^ e) {
+		//throw e;
+	//}
 }
 
 void VX_Network_Lib::KniznicaDLL::Send(int cislo) {
@@ -37,17 +41,23 @@ int VX_Network_Lib::KniznicaDLL::Get() {
 
 //ukazka pouzitia kodu
 int main() {
+	int chyba = 0;
 	VX_Network_Lib::KniznicaDLL a;
 	//a.Send();
 	//int ab = a.Get();
 	//Thread::Sleep(1500);
-
-	while (true) {
-		//a.Send(1);
-		a.Send();
-		printf("Main %d\n", a.Get());
-		//Thread::Sleep(1000);
-		//printf("\n\n\n");
+	try {
+		while (true) {
+			//a.Send(1);
+			a.Send();
+			printf("Main %d\n", a.Get());
+			//Thread::Sleep(1000);
+			//printf("\n\n\n");
+		}
+	}
+	catch (Exception^ e) {
+		chyba++;
+		printf("\n\n\n%d\n\n\n", chyba);
 	}
 	return 0;
 }
