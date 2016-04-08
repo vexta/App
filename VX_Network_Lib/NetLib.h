@@ -36,7 +36,6 @@ public:
 	//Celkova velkost objektu 1 228 852
 };
 
-
 public ref class NetLib {
 public:
 	NetLib();
@@ -45,7 +44,10 @@ public:
 	void Send(int cislo); //uint8_t cislo[]
 						  //int Get();
 	int Get();
+	int newDataAvailable();
 private:
+	int _newData = 0;
+
 	int SizeOfSerializedObjekt;
 	
 	array<unsigned char>^ send_buffer = gcnew array<unsigned char>(BUF_LEN);

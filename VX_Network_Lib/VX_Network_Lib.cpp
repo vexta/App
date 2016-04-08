@@ -1,7 +1,5 @@
 // This is the main DLL file.
 
-//#include "../KniznicaDLL/KniznicaDLL.h"
-
 #include "stdafx.h"
 #include "NetLib.h"
 #include "VX_Network_Lib.h"
@@ -38,8 +36,14 @@ int VX_Network_Lib::KniznicaDLL::Get() {
 	return a->abc->Get();
 }
 
+int VX_Network_Lib::KniznicaDLL::newDataAvailable() {
+	Singleton^ a = Singleton::Instance;
+	return a->abc->newDataAvailable();
+}
+
 
 //ukazka pouzitia kodu
+//#include "../VX_Network_Lib/VX_Network_Lib.h"
 int main() {
 	int chyba = 0;
 	VX_Network_Lib::KniznicaDLL a;

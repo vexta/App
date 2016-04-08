@@ -70,10 +70,9 @@ void NetLib::Listen() {
 				mms->Write(recieve_buffer, 0, size);
 				mms->Position = 0;
 
-				//
-
 				or = (Objekt^)formater->Deserialize(mms);
 			
+				_newData = 1;		//nastav ze ma nove data
 
 			//printf("Velkost prijatych dat[b]: %d\n", size);
 			printf("Prijate >> %d\n\n", size);//or->HeadTilt);
@@ -161,7 +160,9 @@ void NetLib::Send() {
 
 }
 
-
+int NetLib::newDataAvailable() {
+	return _newData;
+}
 
 void NetLib::Send(int cislo) { //uint8_t cislo[]
 	int i = 0;
@@ -191,7 +192,7 @@ int NetLib::Get() {
 	//int var;
 	//var = size;
 	//size = 0;
-
+	_newData = 0;	//zmaz ze nie su aktualne data
 	return size;
 }
 
