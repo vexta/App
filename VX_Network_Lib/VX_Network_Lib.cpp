@@ -1,5 +1,6 @@
 // This is the main DLL file.
 
+#include "NuiKinectFusionApi.h"
 #include "stdafx.h"
 #include "NetLib.h"
 #include "VX_Network_Lib.h"
@@ -26,6 +27,11 @@ void VX_Network_Lib::KniznicaDLL::Send() {
 	//}
 }
 
+void VX_Network_Lib::KniznicaDLL::Send(INuiFusionMesh *meshData) {
+	Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
+	a->abc->Send(meshData);
+}
+
 void VX_Network_Lib::KniznicaDLL::Send(int cislo) {
 	Singleton^ a = Singleton::Instance;
 	a->abc->Send(cislo);
@@ -45,6 +51,9 @@ int VX_Network_Lib::KniznicaDLL::newDataAvailable() {
 //ukazka pouzitia kodu
 //#include "../VX_Network_Lib/VX_Network_Lib.h"
 int main() {
+
+
+
 	int chyba = 0;
 	VX_Network_Lib::KniznicaDLL a;
 	//a.Send();

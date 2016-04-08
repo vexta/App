@@ -9,6 +9,7 @@ namespace VX_Network_Lib {
 	public:
 		void Send();
 		void Send(int cislo);
+		void Send(INuiFusionMesh *meshData);
 		int Get();
 		int newDataAvailable();
 	private:
