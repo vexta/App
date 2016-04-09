@@ -70,10 +70,9 @@ void NetLib::Listen() {
 				mms->Write(recieve_buffer, 0, size);
 				mms->Position = 0;
 
-				//
-
 				or = (Objekt^)formater->Deserialize(mms);
 			
+				_newData = 1;		//nastav ze ma nove data
 
 			//printf("Velkost prijatych dat[b]: %d\n", size);
 			printf("Prijate >> %d\n\n", size);//or->HeadTilt);
@@ -161,7 +160,25 @@ void NetLib::Send() {
 
 }
 
+void NetLib::Send(INuiFusionMesh *meshData) {
 
+	//Object ^o = gcnew Object{ meshData->Release }
+	os->SetData(meshData);
+	System::IO::MemoryStream^ ms = gcnew System::IO::MemoryStream();
+	IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
+	formater->Serialize(ms, os);
+	
+	array<unsigned char>^ buff = gcnew array<unsigned char>(ms->Length);
+	ms->Position = 0;
+	ms->Read(buff, 0, ms->Length);
+
+	lsocket->Send(buff);
+	printf("Odoslane >> %d\n", ms->Length);//or->HeadTilt);
+}
+
+int NetLib::newDataAvailable() {
+	return _newData;
+}
 
 void NetLib::Send(int cislo) { //uint8_t cislo[]
 	int i = 0;
@@ -187,11 +204,12 @@ void NetLib::Send(int cislo) { //uint8_t cislo[]
 //	return size;
 //}
 
+
 int NetLib::Get() {
 	//int var;
 	//var = size;
 	//size = 0;
-
+	_newData = 0;	//zmaz ze nie su aktualne data
 	return size;
 }
 
@@ -233,6 +251,13 @@ Objekt::Objekt(int i) {
 
 	for (int i = 0; i < 640 * 480 * 3; i++)
 		RGB[i] = i;
+
+	meshData = nullptr;
+}
+
+void Objekt::SetData(INuiFusionMesh *mesh)
+{
+	meshData = mesh;
 }
 
 Objekt::~Objekt() {
