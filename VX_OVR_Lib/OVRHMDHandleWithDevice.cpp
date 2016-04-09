@@ -13,14 +13,29 @@ vx_ovr_namespace_::OVRHMDHandleWithDevice::~OVRHMDHandleWithDevice()
 
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::setWindowParams(const unsigned short width, const unsigned short height, const std::string & title)
 {
+	window_ = std::make_shared<vxWnd::OpenGLWindow>(width, height, title);
 }
 
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::initialize()
 {
+
+	// create window
+	window_->create();
+	window_->makeContexCurrent();
+
+
+	// create session
 	ovrResult result = ovr_Create(&session_, &luid_);
 	if (OVR_FAILURE(result)) {
 		throw VX_OVR_RunTimeError("Failed to create OVR session");
 	}
+
+	// create swap texture set
+	createTextureSet();
+
+	// configure head-tracking
+	configureTracking();
+
 }
 
 GLuint vx_ovr_namespace_::OVRHMDHandleWithDevice::prepareFramebuffer(ovrEyeType eye)
@@ -61,3 +76,16 @@ bool vx_ovr_namespace_::OVRHMDHandleWithDevice::shouldClose()
 {
 	return false;
 }
+
+void vx_ovr_namespace_::OVRHMDHandleWithDevice::configureTracking()
+{
+}
+
+void vx_ovr_namespace_::OVRHMDHandleWithDevice::createSession()
+{
+}
+
+void vx_ovr_namespace_::OVRHMDHandleWithDevice::createTextureSet()
+{
+}
+

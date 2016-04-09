@@ -318,7 +318,6 @@ void render(ovrEyeType eye) {
 	auto projection = ovrHmdHandle->getProjectionMatrix(eye);
 
 	shader.setUniformValueMat4("projection", 1, GL_TRUE, (float*)&projection);
-	//shader.setUniformValueMat4("view", 1, GL_FALSE, glm::value_ptr(view));
 
 	auto view = ovrHmdHandle->getViewMatrix(eye, 
 		OVR::Vector3f(viewer.position.x, viewer.position.y, viewer.position.z), 
@@ -348,11 +347,14 @@ int main() {
 	init();
 
 	double t, t0 = glfwGetTime();
+	
 	while (!ovrHmdHandle->shouldClose()) {
 		t = glfwGetTime();
 
 		processKeyInput(t - t0);
-		//view = glm::lookAt(viewer.position, viewer.position + viewer.front, viewer.worldUp);
+
+
+
 
 		render(ovrEye_Left);
 		render(ovrEye_Right);
@@ -360,5 +362,6 @@ int main() {
 
 		t0 = t;
 	}
+
 	return 0;
 }
