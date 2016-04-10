@@ -23,7 +23,7 @@ struct sceneObject {
 	glm::mat4 model;
 	glm::vec3 ambient, diffuse, specular;
 	GLuint vao;
-	unsigned int trianglesCnt;
+	unsigned int verticesCnt;
 
 	void render(vxOpenGL::OpenGLShader &shader);
 };
@@ -93,7 +93,7 @@ void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 	shader.setUniformValue("object.specular", specular.x, specular.y, specular.z);
 
 	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, trianglesCnt);
+	glDrawArrays(GL_TRIANGLES, 0, verticesCnt);
 	glBindVertexArray(0);
 }
 
@@ -198,7 +198,7 @@ void init() {
 	object.model = glm::translate(glm::scale(glm::mat4(1), glm::vec3(5.0f, 1.0f, 5.0f)), glm::vec3(0.0f, -0.5f, 0.0f));
 
 	object.vao = floorVAO;
-	object.trianglesCnt = 6;
+	object.verticesCnt = 6;
 
 	object.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 	object.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
@@ -206,7 +206,7 @@ void init() {
 
 	kinectObject.model = glm::mat4();
 	kinectObject.vao = kinectVAO;
-	kinectObject.trianglesCnt = 1;
+	kinectObject.verticesCnt = 1;
 
 	kinectObject.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 	kinectObject.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
