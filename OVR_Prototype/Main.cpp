@@ -353,10 +353,7 @@ int main() {
 		t = glfwGetTime();
 
 		processKeyInput(t - t0);
-
-
-
-
+		ovrHmdHandle->getTrackingState();
 		render(ovrEye_Left);
 		render(ovrEye_Right);
 		ovrHmdHandle->submitFrame();

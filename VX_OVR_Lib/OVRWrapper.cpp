@@ -36,10 +36,17 @@ std::shared_ptr<vx_ovr_namespace_::OVRHMDHandle> vx_ovr_namespace_::OVRWrapper::
 {
 	initialize();
 	if (useRealHMD_) {
-		return std::shared_ptr<OVRHMDHandleWithDevice>(new OVRHMDHandleWithDevice());
+		try {
+			std::shared_ptr<OVRHMDHandleWithDevice> hmdDevice = std::make_shared<OVRHMDHandleWithDevice>();
+			return hmdDevice;
+		}
+		catch (std::exception e) {
+			useRealHMD_ = false;
+			return std::make_shared<OVRHMDHandleNoDevice>();
+		}
 	}
 	else {
-		return std::shared_ptr<OVRHMDHandleNoDevice>(new OVRHMDHandleNoDevice());
+		return std::make_shared<OVRHMDHandleNoDevice>();
 	}
 }
 

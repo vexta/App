@@ -18,6 +18,7 @@ namespace vx_ovr_namespace_ {
 		virtual void initialize();
 		virtual GLuint prepareFramebuffer(ovrEyeType eye);
 		virtual void submitFrame();
+		virtual void getTrackingState();
 
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const;
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const;

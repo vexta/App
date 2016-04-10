@@ -71,6 +71,11 @@ void vx_ovr_namespace_::OVRHMDHandleNoDevice::submitFrame()
 	glfwSwapBuffers(window_->getHandle());
 }
 
+void vx_ovr_namespace_::OVRHMDHandleNoDevice::getTrackingState()
+{
+
+}
+
 OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const
 {
 	OVR::Vector3f shiftedEyePos;

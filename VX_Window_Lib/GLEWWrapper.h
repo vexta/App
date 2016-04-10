@@ -18,7 +18,10 @@ namespace vx_window_namespace_ {
 
 		static std::shared_ptr<GLEWWrapper> getInstance();
 
+
 		static std::pair<GLuint, GLuint> generateFramebufferObjectWithTexture(unsigned short width, unsigned short height);
+		static GLuint generateFramebufferObject(unsigned short width, unsigned short height);
+
 	private:
 		GLEWWrapper();
 		

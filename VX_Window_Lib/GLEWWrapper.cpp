@@ -68,3 +68,32 @@ std::pair<GLuint, GLuint> vx_window_namespace_::GLEWWrapper::generateFramebuffer
 
 	return std::make_pair(fbo, texture);
 }
+
+GLuint vx_window_namespace_::GLEWWrapper::generateFramebufferObject(unsigned short width, unsigned short height)
+{
+	GLuint fbo;
+	GLuint rbo;
+
+	// generate famebuffer
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	// generate renderbuffer
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach renderbuffer to framebuffer
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	// check framebuffer
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		throw (VX_Window_RunTimeError("Failed to create Framebuffer"));
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return fbo;
+}

@@ -6,6 +6,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <OVR_CAPI.h>
+#include <OVR_CAPI_GL.h>
 #include <Extras\OVR_Math.h>
 
 #include <string>
@@ -26,6 +27,7 @@ namespace vx_ovr_namespace_ {
 		virtual void initialize() = 0;
 		virtual GLuint prepareFramebuffer(ovrEyeType eye) = 0;
 		virtual void submitFrame() = 0;
+		virtual void getTrackingState() = 0;
 
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const = 0;
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const = 0;

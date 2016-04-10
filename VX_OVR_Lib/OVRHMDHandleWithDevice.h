@@ -14,6 +14,7 @@ namespace vx_ovr_namespace_ {
 		virtual void initialize();
 		virtual GLuint prepareFramebuffer(ovrEyeType eye);
 		virtual void submitFrame();
+		virtual void getTrackingState();
 
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const;
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const;
@@ -35,6 +36,20 @@ namespace vx_ovr_namespace_ {
 		ovrSession session_;
 		ovrHmdDesc description_;
 		ovrGraphicsLuid luid_;
+
+		ovrSizei texSizeLeft_, texSizeRight_;
+		GLuint fboLeft_, fboRight_;
+		ovrSwapTextureSet *textureSetLeft_, *textureSetRight_;
+
+		double sampleTime_;
+		ovrEyeRenderDesc eyeRenderDesc_[2];
+		ovrVector3f viewOffset_[2];
+		ovrPosef eyeRenderPosef_[2];
+
+		
+		GLuint textureLeft_, textureRight_;
+
+
 	};
 }
 
