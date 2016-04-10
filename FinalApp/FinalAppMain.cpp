@@ -87,6 +87,8 @@ struct Viewer {
 };
 
 void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
+	glUseProgram(shader);
+
 	shader.setUniformValueMat4("model", 1, GL_FALSE, glm::value_ptr(model));
 	shader.setUniformValue("object.ambient", ambient.x, ambient.y, ambient.z);
 	shader.setUniformValue("object.diffuse", diffuse.x, diffuse.y, diffuse.z);
@@ -275,20 +277,20 @@ void render(ovrEyeType eye) {
 	shader.setUniformValue("light2.diffuse", 0.5f, 0.5f, 0.5f);
 	shader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);
 
-	//glUseProgram(kinectShader);
-	//kinectShader.setUniformValueMat4("projection", 1, GL_TRUE, (float*)&projection);
+	glUseProgram(kinectShader);
+	kinectShader.setUniformValueMat4("projection", 1, GL_TRUE, (float*)&projection);
 
-	//kinectShader.setUniformValueMat4("view", 1, GL_TRUE, (float*)&view);
+	kinectShader.setUniformValueMat4("view", 1, GL_TRUE, (float*)&view);
 
-	//kinectShader.setUniformValue("light1.position", 5.0f, 3.0f, 5.0f);
-	//kinectShader.setUniformValue("light1.ambient", 0.2f, 0.2f, 0.2f);
-	//kinectShader.setUniformValue("light1.diffuse", 0.5f, 0.5f, 0.5f);
-	//kinectShader.setUniformValue("light1.specular", 1.0f, 1.0f, 1.0f);
+	kinectShader.setUniformValue("light1.position", 5.0f, 3.0f, 5.0f);
+	kinectShader.setUniformValue("light1.ambient", 0.2f, 0.2f, 0.2f);
+	kinectShader.setUniformValue("light1.diffuse", 0.5f, 0.5f, 0.5f);
+	kinectShader.setUniformValue("light1.specular", 1.0f, 1.0f, 1.0f);
 
-	//kinectShader.setUniformValue("light2.position", -5.0f, 3.0f, -5.0f);
-	//kinectShader.setUniformValue("light2.ambient", 0.2f, 0.2f, 0.2f);
-	//kinectShader.setUniformValue("light2.diffuse", 0.5f, 0.5f, 0.5f);
-	//kinectShader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);
+	kinectShader.setUniformValue("light2.position", -5.0f, 3.0f, -5.0f);
+	kinectShader.setUniformValue("light2.ambient", 0.2f, 0.2f, 0.2f);
+	kinectShader.setUniformValue("light2.diffuse", 0.5f, 0.5f, 0.5f);
+	kinectShader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);
 
 	object.render(shader);
 	//kinectObject.render(kinectShader);

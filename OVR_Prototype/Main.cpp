@@ -85,6 +85,7 @@ struct Viewer {
 };
 
 void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
+	glUseProgram(shader);
 	shader.setUniformValueMat4("model", 1, GL_FALSE, glm::value_ptr(model));
 	shader.setUniformValue("object.ambient", ambient.x, ambient.y, ambient.z);
 	shader.setUniformValue("object.diffuse", diffuse.x, diffuse.y, diffuse.z);
