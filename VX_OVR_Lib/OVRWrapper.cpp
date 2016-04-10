@@ -15,7 +15,7 @@ void vx_ovr_namespace_::OVRWrapper::initialize()
 		}
 		else {
 			// OVRLib is initialized
-			useRealHMD_ = true;
+			useRealHMD_ = false;
 
 		}
 		initialized_ = true;
