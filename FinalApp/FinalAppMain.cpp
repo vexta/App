@@ -333,6 +333,8 @@ int main() {
 			glBindVertexArray(0);
 		}
 
+		ovrHmdHandle->getTrackingState();
+
 		render(ovrEye_Left);
 		render(ovrEye_Right);
 		ovrHmdHandle->submitFrame();

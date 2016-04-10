@@ -31,13 +31,14 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::initialize()
 	window_->create();
 	window_->makeContexCurrent();
 
-
 	// configure head-tracking
 	configureTracking();
 
 	// create swap texture set
 	createTextureSet();
 
+	// create mirror texture and framebuffer to display it on the window
+	createMirrorTextureAndFramebuffer();
 }
 
 GLuint vx_ovr_namespace_::OVRHMDHandleWithDevice::prepareFramebuffer(ovrEyeType eye)
@@ -90,11 +91,23 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::submitFrame()
 
 	ovrLayerHeader* layers = &ld.Header;
 	ovr_SubmitFrame(session_, 0, &viewScaleDesc, &layers, 1);
+
+	// Blit mirror texture to back buffer
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFramebuffer_);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	GLint w = mirrorTexture_->OGL.Header.TextureSize.w;
+	GLint h = mirrorTexture_->OGL.Header.TextureSize.h;
+	glBlitFramebuffer(0, h, w, 0,
+		0, 0, w, h,
+		GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+	glfwSwapBuffers(window_->getHandle());
 }
 
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::getTrackingState()
 {
-	ovrTrackingState ts = ovr_GetTrackingState(session_, ovr_GetTimeInSeconds(), false);
+	ovrTrackingState ts = ovr_GetTrackingState(session_, ovr_GetTimeInSeconds(), ovrTrue);
 	ovr_CalcEyePoses(ts.HeadPose.ThePose, viewOffset_, eyeRenderPosef_);
 }
 
@@ -105,13 +118,20 @@ OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getViewMatrix(ovrEyeTyp
 
 OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const
 {
+	auto height = ovr_GetFloat(session_, OVR_KEY_EYE_HEIGHT, 1.8f);
+
 	OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(yaw);
 	OVR::Matrix4f finalRollPitchYaw = rollPitchYaw * OVR::Matrix4f(eyeRenderPosef_[eye].Orientation);
 	OVR::Vector3f finalUp = finalRollPitchYaw.Transform(OVR::Vector3f(0.0, 1.0, 0.0));
 	OVR::Vector3f finalForward = finalRollPitchYaw.Transform(OVR::Vector3f(0.0, 0.0, -1.0));
-	OVR::Vector3f shiftedEyePos = OVR::Vector3f(pos_x, pos_y, pos_z) + rollPitchYaw.Transform(eyeRenderPosef_[eye].Position);
+	OVR::Vector3f shiftedEyePos = OVR::Vector3f(pos_x, pos_y + height, pos_z) + rollPitchYaw.Transform(eyeRenderPosef_[eye].Position);
 
 	return OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
+}
+
+OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleWithDevice::getProjectionMatrix(ovrEyeType eye) const
+{
+	return ovrMatrix4f_Projection(description_.DefaultEyeFov[eye], 0.2f, 1000.0f, ovrProjection_RightHanded);
 }
 
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::setKeyCallback(std::function<void(int, int)> keyCallback)
@@ -133,7 +153,7 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::setShouldClose(bool shouldClose)
 
 bool vx_ovr_namespace_::OVRHMDHandleWithDevice::shouldClose()
 {
-	return false;
+	return window_->shouldClose();
 }
 
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::configureTracking()
@@ -148,6 +168,8 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::configureTracking()
 
 	eyeRenderDesc_[0] = ovr_GetRenderDesc(session_, ovrEye_Left, description_.DefaultEyeFov[0]);
 	eyeRenderDesc_[1] = ovr_GetRenderDesc(session_, ovrEye_Right, description_.DefaultEyeFov[1]);
+	viewOffset_[0] = eyeRenderDesc_[0].HmdToEyeViewOffset;
+	viewOffset_[1] = eyeRenderDesc_[1].HmdToEyeViewOffset;
 }
 
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::createSession()
@@ -197,5 +219,15 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::createTextureSet()
 	fboRight_ = vxWnd::GLEWWrapper::generateFramebufferObject(texSizeRight_.w, texSizeRight_.h);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void vx_ovr_namespace_::OVRHMDHandleWithDevice::createMirrorTextureAndFramebuffer()
+{
+	ovr_CreateMirrorTextureGL(session_, GL_SRGB8_ALPHA8, window_->getWidth(), window_->getHeight(), reinterpret_cast<ovrTexture**>(&mirrorTexture_));
+	glGenFramebuffers(1, &mirrorFramebuffer_);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFramebuffer_);
+	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mirrorTexture_->OGL.TexId, 0);
+	glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
