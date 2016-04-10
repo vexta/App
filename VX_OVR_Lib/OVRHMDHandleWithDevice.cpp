@@ -23,7 +23,6 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::initialize()
 	window_->create();
 	window_->makeContexCurrent();
 
-
 	// create session
 	ovrResult result = ovr_Create(&session_, &luid_);
 	if (OVR_FAILURE(result)) {

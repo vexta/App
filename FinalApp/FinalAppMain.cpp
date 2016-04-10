@@ -172,6 +172,14 @@ void init() {
 
 	glBindVertexArray(floorVAO);
 
+	// position
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	// normal
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
 	GLfloat MeshData[] = {
 		0.1f, 0.2f, 0.3f, 0.4f
 	};
@@ -185,20 +193,12 @@ void init() {
 
 	glBindVertexArray(kinectVAO);
 
-	// position
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	// normal
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
 	glBindVertexArray(0);
 
 	object.model = glm::translate(glm::scale(glm::mat4(1), glm::vec3(5.0f, 1.0f, 5.0f)), glm::vec3(0.0f, -0.5f, 0.0f));
 
 	object.vao = floorVAO;
-	object.trianglesCnt = 36;
+	object.trianglesCnt = 6;
 
 	object.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 	object.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
