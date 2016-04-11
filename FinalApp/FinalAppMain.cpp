@@ -9,6 +9,7 @@
 #include <KinectData.h>
 #include <KinectFacade.h>
 #include <KinectHelper.h>
+#include <VX_Network_Lib.h>
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
 GLuint floorVAO, kinectVAO, kinectVBO;
@@ -18,6 +19,8 @@ vxOpenGL::OpenGLShader shader, kinectShader;
 
 bool pressedKeys[1024];
 KinectFacade *kinectFacade;
+//VX_Network_Lib::KniznicaDLL komunikacia;
+
 
 struct sceneObject {
 	glm::mat4 model;
@@ -295,6 +298,9 @@ int main() {
 
 	double t, t0 = glfwGetTime();
 	while (!ovrHmdHandle->shouldClose()) {
+		//if (komunikacia.newDataAvailable())		//zisti ci mas nove aktualne data
+		//	printf("%d \n",komunikacia.Get());						//ak mas nove data tak ichy ziskaj
+		
 		t = glfwGetTime();
 
 		processKeyInput(t - t0);
@@ -302,7 +308,13 @@ int main() {
 
 		KinectData data;
 		KinectParameters parameters;
-		parameters.voxelStep = 2; // remove half of voxels
+		//parameters.reconstructionParameters.voxelsPerMeter = 256;
+		//parameters.reconstructionParameters.voxelCountX = 512;
+		//parameters.reconstructionParameters.voxelCountY = 512;
+		//parameters.reconstructionParameters.voxelCountZ = 512;
+		//parameters.maximumDepth = 6.0;
+		//parameters.minimumDepth = 0.5;
+		//parameters.voxelStep = 1; // remove half of voxels
 		//parameters.reconstructionParameters.voxelsPerMeter = 128;
 		kinectFacade->GetKinectData(data, KinectTypes::MeshData | KinectTypes::BodyData, parameters);
 
@@ -313,7 +325,8 @@ int main() {
 			if (jointsForFirstPerson)
 			{
 				const CameraSpacePoint& headPosition = jointsForFirstPerson[JointType_Head].Position;
-				std::cout << "x: " << headPosition.X << " y: " << headPosition.Y << " z: " << headPosition.Z << std::endl;
+				printf("%f %f %f\n", headPosition.X, headPosition.Y, headPosition.Z);
+				//std::cout << std::fixed << "x: " << headPosition.X << " y: " << headPosition.Y << " z: " << headPosition.Z << std::endl;
 			}
 		}
 
@@ -331,6 +344,8 @@ int main() {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 			glEnableVertexAttribArray(0);
 			glBindVertexArray(0);
+
+			//komunikacia.Send(data.meshData->VertexCount, data.meshData->GetVertices);		//posli nove ziskane data   //pole vektorov a ich dlzku
 		}
 
 		ovrHmdHandle->getTrackingState();

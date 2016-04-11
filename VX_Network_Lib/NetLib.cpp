@@ -1,3 +1,7 @@
+//posielat maximalnu dlzku zakazdym
+//poslat predobjet
+//binary data + serializovany objekt
+
 #include "stdafx.h"
 #include "NetLib.h"
 #include <sstream>
@@ -31,9 +35,14 @@ void NetLib::Init() {
 
 	//address = IPAddress::Parse("127.0.0.1");
 	//address = IPAddress::Parse("127.0.0.1");
-	address = IPAddress::Parse(ConfigurationSettings::AppSettings["IPAddr"]); //address = IPAddress::Parse("10.62.12.251");
-	IPEndPoint^ endPoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
-
+	IPEndPoint^ endPoint;
+	try {
+		address = IPAddress::Parse(ConfigurationSettings::AppSettings["IPAddr"]); //address = IPAddress::Parse("10.62.12.251");
+		endPoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
+	}
+	catch(Exception^ e) {
+		printf("Nepodarilo sa otvorit *.config subor");
+	}
 	//IPEndPoint^ endPoint = gcnew IPEndPoint(address, 8888);
 	lsocket = gcnew Socket(endPoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
 	lsocket->Connect(endPoint);
@@ -51,7 +60,13 @@ void NetLib::Listen() {
 
 	//address = IPAddress::Parse("127.0.0.1");
 	//address = IPAddress::Parse(ConfigurationSettings::AppSettings["IPAddr"]); //address = IPAddress::Parse("10.62.12.251");
-	IPEndPoint^ endpoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
+	IPEndPoint^ endpoint;
+	try {
+		endpoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
+	}
+	catch (Exception^ e) {
+		printf("Nepodarilo sa otvorit *.config subor");
+	}
 	ssocket = gcnew Socket(endpoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
 	ssocket->Bind(endpoint);
 	ssocket->Listen(205);
@@ -59,7 +74,7 @@ void NetLib::Listen() {
 	csocket->ReceiveBufferSize = SizeOfSerializedObjekt;
 
 	while (1 && !ExitThread) {
-		if (csocket->Connected && csocket->Available >= SizeOfSerializedObjekt) {
+		if (csocket->Connected && csocket->Available >= SizeOfSerializedObjekt) { //&& csocket->Available >= SizeOfSerializedObjekt
 
 			size = csocket->Receive(recieve_buffer, 0, SizeOfSerializedObjekt, SocketFlags::None);
 			printf("Buffer >> %d\n", size);//or->HeadTilt);
@@ -87,7 +102,7 @@ NetLib::NetLib() {
 	csocket = nullptr;
 
 	os = gcnew Objekt();
-	or = gcnew Objekt(0);
+	or = gcnew Objekt(); //0
 
 	ZistiVelkostSerializovanehoObjektu();
 

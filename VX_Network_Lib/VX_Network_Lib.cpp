@@ -18,13 +18,14 @@ public:
 };
 
 void VX_Network_Lib::KniznicaDLL::Send() {
-	//try {
+	try {
 	Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
 	a->abc->Send();
-	//}
-	//catch (Exception^ e) {
+	}
+	catch (Exception^ e) {
 		//throw e;
-	//}
+	//	printf("\n\n\n%d\n\n\n", 1);
+	}
 }
 
 void VX_Network_Lib::KniznicaDLL::Send(INuiFusionMesh *meshData) {
@@ -49,17 +50,14 @@ int VX_Network_Lib::KniznicaDLL::newDataAvailable() {
 
 
 //ukazka pouzitia kodu
-//#include "../VX_Network_Lib/VX_Network_Lib.h"
+//#include "VX_Network_Lib.h"
 int main() {
-
-
-
 	int chyba = 0;
 	VX_Network_Lib::KniznicaDLL a;
 	//a.Send();
 	//int ab = a.Get();
 	//Thread::Sleep(1500);
-	try {
+	//try {
 		while (true) {
 			//a.Send(1);
 			a.Send();
@@ -67,10 +65,10 @@ int main() {
 			//Thread::Sleep(1000);
 			//printf("\n\n\n");
 		}
-	}
-	catch (Exception^ e) {
-		chyba++;
-		printf("\n\n\n%d\n\n\n", chyba);
-	}
+	//}
+	//catch (Exception^ e) {
+	//	chyba++;
+	//	printf("\n\n\n%d\n\n\n", chyba);
+	//}
 	return 0;
 }

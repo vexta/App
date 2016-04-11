@@ -74,7 +74,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glm;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(SolutionDir)\VX_Kinect_Lib;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Libs\OculusSDK\LibOVR\Include;$(SolutionDir)\Libs\glm;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\include;$(SolutionDir)\Libs\glew-1.13.0\include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\VX_OVR_Lib;$(SolutionDir)\VX_Window_Lib;$(SolutionDir)\VX_Network_Lib;$(SolutionDir)\VX_Kinect_Lib;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
     <LibraryPath>$(KINECTSDK20_DIR)\lib\x64;$(SolutionDir)\Libs\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015;$(SolutionDir)\Libs\glfw-3.1.2.bin.WIN64\lib-vc2015;$(SolutionDir)\Libs\glew-1.13.0\lib\Release\x64;$(SolutionDir)\Libs\AntTweakBar\lib;$(SolutionDir)\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,8 +107,12 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>AntTweakBar64.lib;LibOVR.lib;opengl32.lib;glew32s.lib;glfw3.lib;kinect20.lib;Kinect20.Fusion.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>VX_Network_Lib.lib;AntTweakBar64.lib;LibOVR.lib;opengl32.lib;glew32s.lib;glfw3.lib;kinect20.lib;Kinect20.Fusion.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy FinalApp.exe.config "$(TargetPath).config"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -157,6 +161,9 @@
     <ProjectReference Include="..\VX_Window_Lib\VX_Window_Lib.vcxproj">
       <Project>{cd98d8be-4b8c-4d00-b952-af70e6ae7442}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FinalApp.exe.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
