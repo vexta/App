@@ -1,5 +1,6 @@
 ﻿#include <VX_OVR_Lib.h>
 #include <iostream>
+#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -26,6 +27,7 @@ KinectFacade *kinectFacade;
 
 struct sceneObject {
 	glm::mat4 model;
+	glm::vec3 position;
 	glm::vec3 ambient, diffuse, specular;
 	GLuint vao;
 	unsigned int verticesCnt;
@@ -105,7 +107,8 @@ void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 }
 
 Viewer viewer;
-sceneObject object, kinectObject, headPos, leftHandPos, rightHandPos;
+sceneObject object, kinectObject, headPos, leftHandPos, rightHandPos, cube;
+std::vector<sceneObject> cubeArray;
 
 void processKeyInput(float deltaTime) {
 	if (pressedKeys[GLFW_KEY_W]) {
@@ -298,6 +301,17 @@ void init() {
 	leftHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
 	leftHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
+	cube.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.22f, 1.4f, -0.7f)), glm::vec3(0.05, 0.05, 0.05));
+	cube.position = glm::vec3(0.22f, 1.4f, -0.7f);
+
+	cube.model = glm::mat4(1);
+	cube.vao = cubeVAO;
+	cube.verticesCnt = 36;
+
+	cube.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	cube.diffuse = glm::vec3(0.0f, 0.0f, 1.0f);
+	cube.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
 
 	try {
 		shader.create();
@@ -382,7 +396,11 @@ void render(ovrEyeType eye) {
 	headPos.render(shader);
 	leftHandPos.render(shader);
 	rightHandPos.render(shader);
+	cube.render(shader);
 
+	for (std::vector<sceneObject>::iterator it = cubeArray.begin(); it != cubeArray.end(); it++) {
+		it->render(shader);
+	}
 
 	glUseProgram(0);
 }
@@ -391,6 +409,10 @@ int main() {
 	init();
 
 	double t, t0 = glfwGetTime();
+
+	cube.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.22f, 1.4f, -0.7f)), glm::vec3(0.05, 0.05, 0.05));
+	boolean leftHandGripped = false;
+
 	while (!ovrHmdHandle->shouldClose()) {
 		//if (komunikacia.newDataAvailable())		//zisti ci mas nove aktualne data
 		//	printf("%d \n",komunikacia.Get());						//ak mas nove data tak ichy ziskaj
@@ -412,6 +434,8 @@ int main() {
 		//parameters.reconstructionParameters.voxelsPerMeter = 128;
 		kinectFacade->GetKinectData(data, KinectTypes::MeshData | KinectTypes::BodyData, parameters);
 
+		
+
 		// TEST ---- output head position
 		if (data.bodies && data.bodies[0])
 		{
@@ -425,17 +449,53 @@ int main() {
 				glm::vec3 leftHandRelativeToHead = glm::vec3(headPosition.X, headPosition.Y, headPosition.Z) - glm::vec3(handLeftPosition.X, handLeftPosition.Y, handLeftPosition.Z);
 				glm::vec3 rightHandRelativeToHead = glm::vec3(headPosition.X, headPosition.Y, headPosition.Z) - glm::vec3(handRightPosition.X, handRightPosition.Y, handRightPosition.Z);
 
-				//leftHandRelativeToHead.z = -leftHandRelativeToHead.z;
-				//rightHandRelativeToHead.z = -rightHandRelativeToHead.z;
+				HandState handRightState, handLeftState;
+
+				data.bodies[0]->get_HandRightState(&handRightState);
+				data.bodies[0]->get_HandLeftState(&handLeftState);
 
 				leftHandRelativeToHead.y -= 1.8; // TODO - use user's height
 				rightHandRelativeToHead.y -= 1.8; // TODO - use user's height
 
+				if (handRightState == HandState_Closed) {
+					rightHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+
+					if (cube.position.x + 0.05 > -rightHandRelativeToHead.x && cube.position.x - 0.05 < -rightHandRelativeToHead.x &&
+						cube.position.y + 0.05 > -rightHandRelativeToHead.y && cube.position.y - 0.05 < -rightHandRelativeToHead.y &&
+						cube.position.z + 0.05 > -rightHandRelativeToHead.z && cube.position.z - 0.05 < -rightHandRelativeToHead.z) {
+
+						cube.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
+						cube.position = -rightHandRelativeToHead;
+					}
+				}
+
+				if (handRightState == HandState_Open) {
+					rightHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+				}
+
+				if (handLeftState == HandState_Closed) {
+					leftHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+					if (!leftHandGripped) {
+						cubeArray.push_back(rightHandPos);
+						leftHandGripped = true;
+					}
+				}
+
+				if (handLeftState == HandState_Open) {
+					leftHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+					leftHandGripped = false;
+
+				}
+
+				//leftHandRelativeToHead.z = -leftHandRelativeToHead.z;
+				//rightHandRelativeToHead.z = -rightHandRelativeToHead.z;
+				
+
 				headPos.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(headPosition.X, headPosition.Y + kinect_position_height, headPosition.Z)), glm::vec3(0.1, 0.1, 0.1));
 				leftHandPos.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
 				rightHandPos.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
-
-				printf("%f %f %f\n", headPosition.X, headPosition.Y, headPosition.Z);
+				
+				printf("%f %f %f\n", -rightHandRelativeToHead.x, -rightHandRelativeToHead.y, -rightHandRelativeToHead.z);
 				//std::cout << std::fixed << "x: " << headPosition.X << " y: " << headPosition.Y << " z: " << headPosition.Z << std::endl;
 			}
 
