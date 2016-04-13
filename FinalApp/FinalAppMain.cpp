@@ -434,12 +434,10 @@ int main() {
 		//parameters.reconstructionParameters.voxelsPerMeter = 128;
 		kinectFacade->GetKinectData(data, KinectTypes::MeshData | KinectTypes::BodyData, parameters);
 
-		
-
 		// TEST ---- output head position
-		if (data.bodies && data.bodies[0])
+		if (data.bodies)
 		{
-			Joint *jointsForFirstPerson = data.ExtractJointsForPerson(0);
+			Joint *jointsForFirstPerson = data.ExtractJointsForFirstPerson();
 			if (jointsForFirstPerson)
 			{
 				const CameraSpacePoint headPosition = jointsForFirstPerson[JointType_Head].Position;

@@ -36,3 +36,25 @@ Joint* KinectData::ExtractJointsForPerson(int personId)
 	}
 	else return nullptr;
 }
+
+Joint* KinectData::ExtractJointsForFirstPerson()
+{
+	BOOLEAN isBodyTracked = false;
+	Joint joints[JointType_Count];
+	HandState leftHandState;
+	for (int i = 0; i < BODY_COUNT; i++) {
+		if (bodies[i]) {
+			bodies[i]->get_IsTracked(&isBodyTracked);
+			bodies[i]->get_HandLeftState(&leftHandState);
+			if (isBodyTracked) {
+				Joint joints[JointType_Count];
+				bodies[i]->GetJoints(JointType_Count, joints);
+
+				return joints;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
