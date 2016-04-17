@@ -22,6 +22,7 @@ namespace vx_ovr_namespace_ {
 
 		virtual void setKeyCallback(std::function<void(int, int)> keyCallback);
 		virtual void setMousePosCallback(std::function<void(double, double)> mousePosCallback);
+		virtual float getUserHeight();
 
 		virtual void setShouldClose(bool shouldClose);
 		virtual bool shouldClose();

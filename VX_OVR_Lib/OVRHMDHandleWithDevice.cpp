@@ -144,6 +144,11 @@ void vx_ovr_namespace_::OVRHMDHandleWithDevice::setMousePosCallback(std::functio
 	window_->setMousePosCallback(mousePosCallback);
 }
 
+float vx_ovr_namespace_::OVRHMDHandleWithDevice::getUserHeight()
+{
+	return ovr_GetFloat(session_, OVR_KEY_EYE_HEIGHT, 1.8f);
+}
+
 void vx_ovr_namespace_::OVRHMDHandleWithDevice::setShouldClose(bool shouldClose)
 {
 	if (shouldClose) {
