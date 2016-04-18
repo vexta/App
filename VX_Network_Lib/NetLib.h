@@ -5,7 +5,8 @@
 #include <iostream>
 #using   "system.dll"
 
-#define BUF_LEN 1000000000
+#define BUF_LEN 10000000
+#define VELKOSTPOLA 300000
 
 using namespace System;
 using namespace System::Text;
@@ -17,12 +18,11 @@ using namespace System::Collections::Generic;
 typedef double ind;
 
 [Serializable]
-public ref class Objekt {
+public ref class AppData {
 public:
-	Objekt();
-	Objekt(int i);
-	void SetData(INuiFusionMesh *mesh);
-	~Objekt();
+	AppData();
+	AppData(int i);
+	~AppData();
 
 	ind HandX;
 	ind HandY;
@@ -37,7 +37,7 @@ public:
 
 	int VertexCount;
 
-	array<float>^ vertices = gcnew array<float>(3 * 30000);
+	array<float>^ vertices = gcnew array<float>(3 * VELKOSTPOLA);
 
 	//array<unsigned char>^ IR = gcnew array<unsigned char>(640 * 480);
 	//array<unsigned char>^ RGB = gcnew array<unsigned char>(640 * 480 * 3);
@@ -57,6 +57,7 @@ public:
 	int newDataAvailable();
 private:
 	int _newData = 0;
+	int _isConnected = 0;
 
 	int SizeOfSerializedObjekt;
 	
@@ -65,9 +66,9 @@ private:
 
 	Thread^ thread;
 	Boolean ExitThread = false;
+
 	Socket^ ssocket;
 	Socket^ csocket;
-
 	Socket^ lsocket;
 
 	int counter;
@@ -80,6 +81,6 @@ private:
 	void Init();
 	void ZistiVelkostSerializovanehoObjektu();
 
-		Objekt^ os;
-		Objekt^ or;
+		AppData^ os;
+		AppData^ or;
 };

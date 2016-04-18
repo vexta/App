@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VX_Network_Lib", "VX_Networ
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FinalApp", "FinalApp\FinalApp.vcxproj", "{8EEFD1C7-BA01-4493-A84D-DAE94FE3C7CC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VX_Network_Prototype", "VX_Network_Prototype\VX_Network_Prototype.vcxproj", "{400E6BB5-7A30-41E1-9436-E5383D533125}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -83,6 +85,14 @@ Global
 		{8EEFD1C7-BA01-4493-A84D-DAE94FE3C7CC}.Release|x64.Build.0 = Release|x64
 		{8EEFD1C7-BA01-4493-A84D-DAE94FE3C7CC}.Release|x86.ActiveCfg = Release|Win32
 		{8EEFD1C7-BA01-4493-A84D-DAE94FE3C7CC}.Release|x86.Build.0 = Release|Win32
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Debug|x64.ActiveCfg = Debug|x64
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Debug|x64.Build.0 = Debug|x64
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Debug|x86.ActiveCfg = Debug|Win32
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Debug|x86.Build.0 = Debug|Win32
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Release|x64.ActiveCfg = Release|x64
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Release|x64.Build.0 = Release|x64
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Release|x86.ActiveCfg = Release|Win32
+		{400E6BB5-7A30-41E1-9436-E5383D533125}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

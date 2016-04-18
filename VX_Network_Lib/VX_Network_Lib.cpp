@@ -5,6 +5,11 @@
 #include "NetLib.h"
 #include "VX_Network_Lib.h"
 
+#define DEBUG
+#define ERROR_OUTPUT (stdout)
+#define WRITE_ERROR fprintf(ERROR_OUTPUT, "%s\n\n", ex->ToString());
+
+
 public ref class Singleton {
 private:
 	Singleton() {
@@ -19,33 +24,62 @@ public:
 
 void VX_Network_Lib::KniznicaDLL::Send() {
 	try {
-	Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
-	a->abc->Send();
+		Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
+		a->abc->Send();
 	}
-	catch (Exception^ e) {
-		//throw e;
-	//	printf("\n\n\n%d\n\n\n", 1);
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
 	}
 }
 
 void VX_Network_Lib::KniznicaDLL::Send(INuiFusionMesh *meshData) {
-	Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
-	a->abc->Send(meshData);
+	try {
+		Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
+		a->abc->Send(meshData);
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
 }
 
 void VX_Network_Lib::KniznicaDLL::Send(int cislo) {
-	Singleton^ a = Singleton::Instance;
-	a->abc->Send(cislo);
+	try {
+		Singleton^ a = Singleton::Instance;
+		a->abc->Send(cislo);
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
 }
 
 int VX_Network_Lib::KniznicaDLL::Get() {
-	Singleton^ a = Singleton::Instance;
-	return a->abc->Get();
+	try {
+		Singleton^ a = Singleton::Instance;
+		return a->abc->Get();
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
 }
 
 Vector3* VX_Network_Lib::KniznicaDLL::GetVrcholy(int *pocet) {
-	Singleton^ a = Singleton::Instance;
-	return a->abc->GetVrcholy(pocet);
+	try {
+		Singleton^ a = Singleton::Instance;
+		return a->abc->GetVrcholy(pocet);
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
 }
 
 int VX_Network_Lib::KniznicaDLL::newDataAvailable() {
