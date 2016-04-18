@@ -77,7 +77,7 @@ void NetLib::Listen() {
 		if (csocket->Connected && csocket->Available >= SizeOfSerializedObjekt) { //&& csocket->Available >= SizeOfSerializedObjekt
 
 			size = csocket->Receive(recieve_buffer, 0, SizeOfSerializedObjekt, SocketFlags::None);
-			printf("Buffer >> %d\n", size);//or->HeadTilt);
+			//printf("Buffer >> %d\n", size);//or->HeadTilt);
 			//csocket->
 
 				IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
@@ -86,11 +86,14 @@ void NetLib::Listen() {
 				mms->Position = 0;
 
 				or = (Objekt^)formater->Deserialize(mms);
+				
+				//printf("UKAZOVATEL na data %d \n", or->meshData);
+				//printf("Velkost prijatych dat %d \n", or ->VertexCount);
 			
 				_newData = 1;		//nastav ze ma nove data
 
 			//printf("Velkost prijatych dat[b]: %d\n", size);
-			printf("Prijate >> %d\n\n", size);//or->HeadTilt);
+			//printf("Prijate >> %d\n\n", size);//or->HeadTilt);
 		}
 	}
 }
@@ -178,17 +181,28 @@ void NetLib::Send() {
 void NetLib::Send(INuiFusionMesh *meshData) {
 
 	//Object ^o = gcnew Object{ meshData->Release }
-	os->SetData(meshData);
+	//printf("1*");
+	//os->SetData(meshData);
+	//printf("2*");
 	System::IO::MemoryStream^ ms = gcnew System::IO::MemoryStream();
 	IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
 	formater->Serialize(ms, os);
 	
+	const Vector3* temp;
+	meshData->GetVertices(&temp);
+
+	os->VertexCount = meshData->VertexCount();
+	for (int i = 0; i < os->VertexCount; i+=3) {
+		os->vertices[i]   = temp[i].x;
+		os->vertices[i+1] = temp[i].y;
+		os->vertices[i+2] = temp[i].z;
+	}
 	array<unsigned char>^ buff = gcnew array<unsigned char>(ms->Length);
 	ms->Position = 0;
 	ms->Read(buff, 0, ms->Length);
 
 	lsocket->Send(buff);
-	printf("Odoslane >> %d\n", ms->Length);//or->HeadTilt);
+	//printf("Odoslane >> %d\n", ms->Length);//or->HeadTilt);
 }
 
 int NetLib::newDataAvailable() {
@@ -229,6 +243,19 @@ int NetLib::Get() {
 }
 
 
+Vector3* NetLib::GetVrcholy(int *velkostpola) {
+	*velkostpola = or->VertexCount;
+
+	Vector3 rola[30000];
+	for (int i = 0, j = 0; or->VertexCount; i++, j+=3) {
+		rola[i].x = or ->vertices[j];
+		rola[i].y = or ->vertices[j+1];
+		rola[i].z = or ->vertices[j+2];
+	}
+	return rola;
+}
+
+
 
 
 
@@ -242,12 +269,6 @@ Objekt::Objekt() {
 	HeadX = 5;
 	HeadY = 6;
 	HeadZ = 7;
-
-	for (int i = 0; i < 640 * 480; i++)
-		IR[i] = 127;
-
-	for (int i = 0; i < 640 * 480 * 3; i++)
-		RGB[i] = 255;
 }
 
 Objekt::Objekt(int i) {
@@ -260,12 +281,6 @@ Objekt::Objekt(int i) {
 	HeadX = i;
 	HeadY = i;
 	HeadZ = i;
-
-	for (int i = 0; i < 640 * 480; i++)
-		IR[i] = i;
-
-	for (int i = 0; i < 640 * 480 * 3; i++)
-		RGB[i] = i;
 
 	meshData = nullptr;
 }
