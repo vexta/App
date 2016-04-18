@@ -32,6 +32,7 @@ namespace vx_ovr_namespace_ {
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, OVR::Vector3f position, OVR::Vector3f front, OVR::Vector3f right, float yaw) const = 0;
 		virtual OVR::Matrix4f getViewMatrix(ovrEyeType eye, float pos_x, float pos_y, float pos_z, float yaw) const = 0;
 		virtual OVR::Matrix4f getProjectionMatrix(ovrEyeType eye) const;
+		virtual float getUserHeight() = 0;
 		virtual void setViewport(ovrEyeType eye) const;
 		
 		virtual void setKeyCallback(std::function<void(int, int)> keyCallback) = 0;

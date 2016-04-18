@@ -111,6 +111,11 @@ OVR::Matrix4f vx_ovr_namespace_::OVRHMDHandleNoDevice::getViewMatrix(ovrEyeType 
 	return OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
 }
 
+float vx_ovr_namespace_::OVRHMDHandleNoDevice::getUserHeight()
+{
+	return 1.8f;
+}
+
 void vx_ovr_namespace_::OVRHMDHandleNoDevice::setKeyCallback(std::function<void(int, int)> keyCallback)
 {
 	window_->setKeyCallback(keyCallback);

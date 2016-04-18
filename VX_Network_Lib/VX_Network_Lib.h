@@ -11,6 +11,7 @@ namespace VX_Network_Lib {
 		void Send(int cislo);
 		void Send(INuiFusionMesh *meshData);
 		int Get();
+		Vector3* GetVrcholy(int *pocet);
 		int newDataAvailable();
 	private:
 		uint32_t _chyba = 0;

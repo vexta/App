@@ -12,6 +12,7 @@ using namespace System::Text;
 using namespace System::Net;
 using namespace System::Net::Sockets;
 using namespace System::Threading;
+using namespace System::Collections::Generic;
 
 typedef double ind;
 
@@ -34,8 +35,12 @@ public:
 	float HeadTilt;
 	INuiFusionMesh *meshData;
 
-	array<unsigned char>^ IR = gcnew array<unsigned char>(640 * 480);
-	array<unsigned char>^ RGB = gcnew array<unsigned char>(640 * 480 * 3);
+	int VertexCount;
+
+	array<float>^ vertices = gcnew array<float>(3 * 30000);
+
+	//array<unsigned char>^ IR = gcnew array<unsigned char>(640 * 480);
+	//array<unsigned char>^ RGB = gcnew array<unsigned char>(640 * 480 * 3);
 	//Celkova velkost objektu 1 228 852
 };
 
@@ -48,6 +53,7 @@ public:
 						  //int Get();
 	void Send(INuiFusionMesh *meshData);
 	int Get();
+	Vector3* GetVrcholy(int *velkostpola);
 	int newDataAvailable();
 private:
 	int _newData = 0;

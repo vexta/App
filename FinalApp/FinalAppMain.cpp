@@ -15,7 +15,7 @@
 const float kinect_position_height(0.78f);
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
-GLuint floorVAO, cubeVAO, cubeVBO;
+GLuint floorVAO, cubeVAO, cubeVBO, kinectMeshVAO, kinectMeshVBO;
 
 glm::mat4 floorModel;
 vxOpenGL::OpenGLShader shader, kinectShader;
@@ -107,7 +107,7 @@ void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 }
 
 Viewer viewer;
-sceneObject object, kinectObject, headPos, leftHandPos, rightHandPos, cube;
+sceneObject object, kinectMesh, headPos, leftHandPos, rightHandPos, cube;
 std::vector<sceneObject> cubeArray;
 
 void processKeyInput(float deltaTime) {
@@ -241,7 +241,7 @@ void init() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
-	//kinect body parts
+	//cubes
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &cubeVBO);
 
@@ -260,6 +260,10 @@ void init() {
 
 	glBindVertexArray(0);
 
+	//kinect body parts
+	glGenVertexArrays(1, &kinectMeshVAO);
+	glGenBuffers(1, &kinectMeshVBO);
+
 	object.model = glm::translate(glm::scale(glm::mat4(1), glm::vec3(5.0f, 1.0f, 5.0f)), glm::vec3(0.0f, -0.5f, 0.0f));
 
 	object.vao = floorVAO;
@@ -269,13 +273,12 @@ void init() {
 	object.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
 	object.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
-	kinectObject.model = glm::mat4(1);
-	kinectObject.vao = cubeVAO;
-	kinectObject.verticesCnt = 36;
+	kinectMesh.model = glm::mat4(1);
+	kinectMesh.vao = kinectMeshVAO;
 
-	kinectObject.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	kinectObject.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
-	kinectObject.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+	kinectMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	kinectMesh.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	kinectMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
 	headPos.model = glm::mat4(1);
 	headPos.vao = cubeVAO;
@@ -376,7 +379,7 @@ void render(ovrEyeType eye) {
 	shader.setUniformValue("light2.diffuse", 0.5f, 0.5f, 0.5f);
 	shader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);
 
-	/*glUseProgram(kinectShader);
+	glUseProgram(kinectShader);
 	kinectShader.setUniformValueMat4("projection", 1, GL_TRUE, (float*)&projection);
 
 	kinectShader.setUniformValueMat4("view", 1, GL_TRUE, (float*)&view);
@@ -389,14 +392,14 @@ void render(ovrEyeType eye) {
 	kinectShader.setUniformValue("light2.position", -5.0f, 3.0f, -5.0f);
 	kinectShader.setUniformValue("light2.ambient", 0.2f, 0.2f, 0.2f);
 	kinectShader.setUniformValue("light2.diffuse", 0.5f, 0.5f, 0.5f);
-	kinectShader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);*/
+	kinectShader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);
 
 	object.render(shader);
-	
 	headPos.render(shader);
 	leftHandPos.render(shader);
 	rightHandPos.render(shader);
 	cube.render(shader);
+	kinectMesh.render(kinectShader);
 
 	for (std::vector<sceneObject>::iterator it = cubeArray.begin(); it != cubeArray.end(); it++) {
 		it->render(shader);
@@ -428,13 +431,17 @@ int main() {
 		//parameters.reconstructionParameters.voxelCountX = 512;
 		//parameters.reconstructionParameters.voxelCountY = 512;
 		//parameters.reconstructionParameters.voxelCountZ = 512;
-		//parameters.maximumDepth = 6.0;
-		//parameters.minimumDepth = 0.5;
-		//parameters.voxelStep = 1; // remove half of voxels
+		//
+		//parameters.reconstructionParameters.voxelsPerMeter = 128;
+		//parameters.reconstructionParameters.voxelCountX = 256;
+		//parameters.reconstructionParameters.voxelCountY = 256;
+		parameters.reconstructionParameters.voxelCountZ = 512;
+		parameters.maximumDepth = 4.0;
+		parameters.minimumDepth = 0.5;
+		parameters.voxelStep = 2; // remove half of voxels
 		//parameters.reconstructionParameters.voxelsPerMeter = 128;
 		kinectFacade->GetKinectData(data, KinectTypes::MeshData | KinectTypes::BodyData, parameters);
 
-		// TEST ---- output head position
 		if (data.bodies)
 		{
 			int index = 0;
@@ -453,10 +460,12 @@ int main() {
 				data.bodies[index]->get_HandRightState(&handRightState);
 				data.bodies[index]->get_HandLeftState(&handLeftState);
 
-				leftHandRelativeToHead.y -= 1.8; // TODO - use user's height
-				rightHandRelativeToHead.y -= 1.8; // TODO - use user's height
+				auto userHeight = ovrHmdHandle->getUserHeight();
+				leftHandRelativeToHead.y -= userHeight;
+				rightHandRelativeToHead.y -= userHeight;
 
 				if (handRightState == HandState_Closed) {
+					printf("ruka zavreta\n");
 					rightHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 
 					if (cube.position.x + 0.05 > -rightHandRelativeToHead.x && cube.position.x - 0.05 < -rightHandRelativeToHead.x &&
@@ -483,41 +492,38 @@ int main() {
 				if (handLeftState == HandState_Open) {
 					leftHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
 					leftHandGripped = false;
-
 				}
-
-				//leftHandRelativeToHead.z = -leftHandRelativeToHead.z;
-				//rightHandRelativeToHead.z = -rightHandRelativeToHead.z;
 				
-
 				headPos.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(headPosition.X, headPosition.Y + kinect_position_height, headPosition.Z)), glm::vec3(0.1, 0.1, 0.1));
 				leftHandPos.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
 				rightHandPos.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
 				
-				printf("%f %f %f\n", -rightHandRelativeToHead.x, -rightHandRelativeToHead.y, -rightHandRelativeToHead.z);
-				//std::cout << std::fixed << "x: " << headPosition.X << " y: " << headPosition.Y << " z: " << headPosition.Z << std::endl;
+				printf("%f %f %f\n", handLeftPosition.X, handLeftPosition.Y, handLeftPosition.Z);
+				
 			}
-
 		}
 
-		// if mesh data successfully retrieved
-		/*if (data.meshData) {
-			const Vector3 *vertices = nullptr;
+		if (data.meshData) {	// if mesh data successfully retrieved
+			const Vector3 *vertices = nullptr, *normals = nullptr;
 			data.meshData->GetVertices(&vertices);
+			data.meshData->GetNormals(&normals);
 			int vertexCount = data.meshData->VertexCount();
 
-			kinectObject.verticesCnt = vertexCount;
-			
-			
-			glBindVertexArray(kinectVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, kinectVBO);
+			kinectMesh.verticesCnt = vertexCount;
+			kinectMesh.model = glm::translate(glm::rotate(glm::mat4(1), 180.0f, glm::vec3(1, 0, 0)), glm::vec3(0.0, -2.0, 0.0));
+
+			//kinectMesh.model = glm::rotate(glm::mat4(1), 180.0f, glm::vec3(0, 0, 1));
+
+
+			glBindVertexArray(kinectMeshVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, kinectMeshVBO);
 			glBufferData(GL_ARRAY_BUFFER, vertexCount * 3 * sizeof(float), vertices, GL_STREAM_DRAW);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 			glEnableVertexAttribArray(0);
 			glBindVertexArray(0);
 
 			//komunikacia.Send(data.meshData->VertexCount, data.meshData->GetVertices);		//posli nove ziskane data   //pole vektorov a ich dlzku
-		}*/
+		}
 
 		ovrHmdHandle->getTrackingState();
 

@@ -43,6 +43,11 @@ int VX_Network_Lib::KniznicaDLL::Get() {
 	return a->abc->Get();
 }
 
+Vector3* VX_Network_Lib::KniznicaDLL::GetVrcholy(int *pocet) {
+	Singleton^ a = Singleton::Instance;
+	return a->abc->GetVrcholy(pocet);
+}
+
 int VX_Network_Lib::KniznicaDLL::newDataAvailable() {
 	Singleton^ a = Singleton::Instance;
 	return a->abc->newDataAvailable();
@@ -57,7 +62,7 @@ int main() {
 	//a.Send();
 	//int ab = a.Get();
 	//Thread::Sleep(1500);
-	//try {
+	try {
 		while (true) {
 			//a.Send(1);
 			a.Send();
@@ -65,10 +70,10 @@ int main() {
 			//Thread::Sleep(1000);
 			//printf("\n\n\n");
 		}
-	//}
-	//catch (Exception^ e) {
-	//	chyba++;
-	//	printf("\n\n\n%d\n\n\n", chyba);
-	//}
+	}
+	catch (Exception^ e) {
+	  chyba++;
+		printf("\n\n\n%d\n\n\n", chyba);
+	}
 	return 0;
 }
