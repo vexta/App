@@ -12,5 +12,5 @@ struct KinectData
 	KinectData();
 	~KinectData();
 	Joint* ExtractJointsForPerson(int personId);
-	Joint* ExtractJointsForFirstPerson();
+	Joint* ExtractJointsForFirstPerson(int& index);
 };

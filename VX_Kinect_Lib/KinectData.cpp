@@ -37,7 +37,7 @@ Joint* KinectData::ExtractJointsForPerson(int personId)
 	else return nullptr;
 }
 
-Joint* KinectData::ExtractJointsForFirstPerson()
+Joint* KinectData::ExtractJointsForFirstPerson(int& index)
 {
 	BOOLEAN isBodyTracked = false;
 	Joint joints[JointType_Count];
@@ -50,6 +50,7 @@ Joint* KinectData::ExtractJointsForFirstPerson()
 				Joint joints[JointType_Count];
 				bodies[i]->GetJoints(JointType_Count, joints);
 
+				index = i;
 				return joints;
 			}
 		}

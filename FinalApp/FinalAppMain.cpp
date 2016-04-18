@@ -437,7 +437,8 @@ int main() {
 		// TEST ---- output head position
 		if (data.bodies)
 		{
-			Joint *jointsForFirstPerson = data.ExtractJointsForFirstPerson();
+			int index = 0;
+			Joint *jointsForFirstPerson = data.ExtractJointsForFirstPerson(index);
 			if (jointsForFirstPerson)
 			{
 				const CameraSpacePoint headPosition = jointsForFirstPerson[JointType_Head].Position;
@@ -449,8 +450,8 @@ int main() {
 
 				HandState handRightState, handLeftState;
 
-				data.bodies[0]->get_HandRightState(&handRightState);
-				data.bodies[0]->get_HandLeftState(&handLeftState);
+				data.bodies[index]->get_HandRightState(&handRightState);
+				data.bodies[index]->get_HandLeftState(&handLeftState);
 
 				leftHandRelativeToHead.y -= 1.8; // TODO - use user's height
 				rightHandRelativeToHead.y -= 1.8; // TODO - use user's height
@@ -527,7 +528,7 @@ int main() {
 		t0 = t;
 	}
 
-	if (kinectFacade) free(kinectFacade);
+	if (kinectFacade) delete kinectFacade;
 
 	return 0;
 }
