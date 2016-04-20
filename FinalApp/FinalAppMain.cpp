@@ -1,5 +1,7 @@
 ﻿#include <VX_OVR_Lib.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,7 +17,7 @@
 const float kinect_position_height(0.78f);
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
-GLuint floorVAO, cubeVAO, cubeVBO, kinectMeshVAO, kinectMeshVBO;
+GLuint floorVAO, cubeVAO, cubeVBO, kinectMeshVAO, kinectMeshVBO, sphereVAO, sphereVBO;
 
 glm::mat4 floorModel;
 vxOpenGL::OpenGLShader shader, kinectShader;
@@ -107,8 +109,9 @@ void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 }
 
 Viewer viewer;
-sceneObject object, kinectMesh, headPos, leftHandPos, rightHandPos, cube;
+sceneObject object, kinectMesh, headPos, leftHandPos, rightHandPos, cube1, cube2, cube3, sphere;
 std::vector<sceneObject> cubeArray;
+
 
 void processKeyInput(float deltaTime) {
 	if (pressedKeys[GLFW_KEY_W]) {
@@ -129,6 +132,55 @@ void processKeyInput(float deltaTime) {
 	if (pressedKeys[GLFW_KEY_E]) {
 		viewer.rotate(Viewer::Rotation::Negative, deltaTime);
 	}
+}
+
+void load_obj(const char* filename, std::vector<glm::vec4> &vertices, std::vector<glm::vec3> &normals, std::vector<GLushort> &elements)
+{
+	std::ifstream in(filename, std::ifstream::in);
+	if (!in)
+	{
+		std::cerr << "Cannot open " << filename << std::endl; 
+		exit(1);
+	}
+
+	std::string line;
+	while (getline(in, line))
+	{
+		if (line.substr(0, 2) == "v ")
+		{
+			std::istringstream s(line.substr(2));
+			glm::vec4 v; s >> v.x; s >> v.y; s >> v.z; v.w = 1.0f;
+			vertices.push_back(v);
+		}
+		else if (line.substr(0, 2) == "f ")
+		{
+			std::istringstream s(line.substr(2));
+			GLushort a, b, c;
+			s >> a; s >> b; s >> c;
+			a--; b--; c--;
+			elements.push_back(a); elements.push_back(b); elements.push_back(c);
+		}
+		else if (line[0] == '#')
+		{
+			// ignoring this line 
+		}
+		else
+		{
+			// ignoring this line 
+		}
+	}
+
+	/*normals.resize(vertices.size(), glm::vec3(0.0, 0.0, 0.0));
+	for (int i = 0; i < elements.size(); i += 3)
+	{
+		GLushort ia = elements[i];
+		GLushort ib = elements[i + 1];
+		GLushort ic = elements[i + 2];
+		glm::vec3 normal = glm::normalize(glm::cross(
+			glm::vec3(vertices[ib]) - glm::vec3(vertices[ia]),
+			glm::vec3(vertices[ic]) - glm::vec3(vertices[ia])));
+		normals[ia] = normals[ib] = normals[ic] = normal;
+	}*/
 }
 
 void init() {
@@ -264,6 +316,34 @@ void init() {
 	glGenVertexArrays(1, &kinectMeshVAO);
 	glGenBuffers(1, &kinectMeshVBO);
 
+	//sphere
+	//std::vector<glm::vec4> sphere_vertices;
+	//std::vector<glm::vec3> sphere_normals;
+	//std::vector<GLushort> sphere_elements;
+
+	//load_obj("sphere/sphere.obj", sphere_vertices, sphere_normals, sphere_elements);
+	//
+	//float *sphereVertices = new float[3*sizeof(sphere_vertices)];
+	//int i = 0;
+
+	//for (std::vector<glm::vec4>::iterator it = sphere_vertices.begin(); it != sphere_vertices.end(); ++it){
+	//	sphereVertices[i] = (*it).x;
+	//	sphereVertices[i+1] = (*it).y;
+	//	sphereVertices[i+2] = (*it).z;
+	//	i += 3;
+	//}
+
+	//printf("sphere vertex 1: %f", sphereVertices[0]);
+	//printf("sphere vertex n: %f", sphereVertices[3 * sizeof(sphere_vertices)-1]);
+
+	//glBindVertexArray(sphereVAO);
+	//glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(sphere_vertices) * 3 * sizeof(float), sphereVertices, GL_STREAM_DRAW);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+	//glEnableVertexAttribArray(0);
+	//glBindVertexArray(0);
+
+
 	object.model = glm::translate(glm::scale(glm::mat4(1), glm::vec3(5.0f, 1.0f, 5.0f)), glm::vec3(0.0f, -0.5f, 0.0f));
 
 	object.vao = floorVAO;
@@ -304,17 +384,43 @@ void init() {
 	leftHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
 	leftHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
-	cube.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.22f, 1.4f, -0.7f)), glm::vec3(0.05, 0.05, 0.05));
-	cube.position = glm::vec3(0.22f, 1.4f, -0.7f);
+	//cube1
+	cube1.model = glm::mat4(1);
+	cube1.vao = cubeVAO;
+	cube1.verticesCnt = 36;
 
-	cube.model = glm::mat4(1);
-	cube.vao = cubeVAO;
-	cube.verticesCnt = 36;
+	cube1.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	cube1.diffuse = glm::vec3(0.0f, 0.5f, 0.5f);
+	cube1.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
-	cube.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	cube.diffuse = glm::vec3(0.0f, 0.0f, 1.0f);
-	cube.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+	//cube2
+	cube2.model = glm::mat4(1);
+	cube2.vao = cubeVAO;
+	cube2.verticesCnt = 36;
 
+	cube2.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	cube2.diffuse = glm::vec3(0.0f, 0.0f, 1.0f);
+	cube2.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	//cube3
+	cube3.model = glm::mat4(1);
+	cube3.vao = cubeVAO;
+	cube3.verticesCnt = 36;
+
+	cube3.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	cube3.diffuse = glm::vec3(0.5f, 0.5f, 0.0f);
+	cube3.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	//sphere
+	sphere.position = glm::vec3(0.22f, 1.0f, -0.7f);
+
+	sphere.model = glm::mat4(1);
+	sphere.vao = sphereVAO;
+	sphere.verticesCnt = 36;
+
+	sphere.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	sphere.diffuse = glm::vec3(0.5f, 0.5f, 0.0f);
+	sphere.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
 	try {
 		shader.create();
@@ -398,22 +504,32 @@ void render(ovrEyeType eye) {
 	headPos.render(shader);
 	leftHandPos.render(shader);
 	rightHandPos.render(shader);
-	cube.render(shader);
+	cube1.render(shader);
+	cube2.render(shader);
+	cube3.render(shader);
 	kinectMesh.render(kinectShader);
+	//sphere.render(shader);
 
 	for (std::vector<sceneObject>::iterator it = cubeArray.begin(); it != cubeArray.end(); it++) {
 		it->render(shader);
 	}
-
+	
 	glUseProgram(0);
 }
 
 int main() {
 	init();
-
+	
 	double t, t0 = glfwGetTime();
+	int grippedObjectIdRight = 0, grippedObjectIdLeft = 0;	//cislo objektu, ktory je prave uchopeny
 
-	cube.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.22f, 1.4f, -0.7f)), glm::vec3(0.05, 0.05, 0.05));
+	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //fialova
+	cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
+	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //modra
+	cube2.position = glm::vec3(0.0f, 1.4f, -0.5f);
+	cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //zlta
+	cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
+
 	boolean leftHandGripped = false;
 
 	while (!ovrHmdHandle->shouldClose()) {
@@ -468,30 +584,81 @@ int main() {
 					printf("ruka zavreta\n");
 					rightHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 
-					if (cube.position.x + 0.05 > -rightHandRelativeToHead.x && cube.position.x - 0.05 < -rightHandRelativeToHead.x &&
-						cube.position.y + 0.05 > -rightHandRelativeToHead.y && cube.position.y - 0.05 < -rightHandRelativeToHead.y &&
-						cube.position.z + 0.05 > -rightHandRelativeToHead.z && cube.position.z - 0.05 < -rightHandRelativeToHead.z) {
+					if (cube1.position.x + 0.07 > -rightHandRelativeToHead.x && cube1.position.x - 0.07 < -rightHandRelativeToHead.x &&
+						cube1.position.y + 0.07 > -rightHandRelativeToHead.y && cube1.position.y - 0.07 < -rightHandRelativeToHead.y &&
+						cube1.position.z + 0.07 > -rightHandRelativeToHead.z && cube1.position.z - 0.07 < -rightHandRelativeToHead.z &&
+						(grippedObjectIdRight == 0 || grippedObjectIdRight == 1)) {
 
-						cube.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
-						cube.position = -rightHandRelativeToHead;
+						cube1.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						cube1.position = -rightHandRelativeToHead;
+						grippedObjectIdRight = 1;
+					}
+					if (cube2.position.x + 0.07 > -rightHandRelativeToHead.x && cube2.position.x - 0.07 < -rightHandRelativeToHead.x &&
+						cube2.position.y + 0.07 > -rightHandRelativeToHead.y && cube2.position.y - 0.07 < -rightHandRelativeToHead.y &&
+						cube2.position.z + 0.07 > -rightHandRelativeToHead.z && cube2.position.z - 0.07 < -rightHandRelativeToHead.z &&
+						(grippedObjectIdRight == 0 || grippedObjectIdRight == 2)) {
+
+						cube2.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						cube2.position = -rightHandRelativeToHead;
+						grippedObjectIdRight = 2;
+					}
+					if (cube3.position.x + 0.07 > -rightHandRelativeToHead.x && cube3.position.x - 0.07 < -rightHandRelativeToHead.x &&
+						cube3.position.y + 0.07 > -rightHandRelativeToHead.y && cube3.position.y - 0.07 < -rightHandRelativeToHead.y &&
+						cube3.position.z + 0.07 > -rightHandRelativeToHead.z && cube3.position.z - 0.07 < -rightHandRelativeToHead.z &&
+						(grippedObjectIdRight == 0 || grippedObjectIdRight == 3)) {
+
+						cube3.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						cube3.position = -rightHandRelativeToHead;
+						grippedObjectIdRight = 3;
 					}
 				}
 
 				if (handRightState == HandState_Open) {
 					rightHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+					grippedObjectIdRight = 0;
 				}
 
 				if (handLeftState == HandState_Closed) {
 					leftHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
-					if (!leftHandGripped) {
+
+					if (cube1.position.x + 0.07 > -leftHandRelativeToHead.x && cube1.position.x - 0.07 < -leftHandRelativeToHead.x &&
+						cube1.position.y + 0.07 > -leftHandRelativeToHead.y && cube1.position.y - 0.07 < -leftHandRelativeToHead.y &&
+						cube1.position.z + 0.07 > -leftHandRelativeToHead.z && cube1.position.z - 0.07 < -leftHandRelativeToHead.z &&
+						(grippedObjectIdLeft == 0 || grippedObjectIdLeft == 1)) {
+
+						cube1.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						cube1.position = -leftHandRelativeToHead;
+						grippedObjectIdLeft = 1;
+					}
+					if (cube2.position.x + 0.07 > -leftHandRelativeToHead.x && cube2.position.x - 0.07 < -leftHandRelativeToHead.x &&
+						cube2.position.y + 0.07 > -leftHandRelativeToHead.y && cube2.position.y - 0.07 < -leftHandRelativeToHead.y &&
+						cube2.position.z + 0.07 > -leftHandRelativeToHead.z && cube2.position.z - 0.07 < -leftHandRelativeToHead.z &&
+						(grippedObjectIdLeft == 0 || grippedObjectIdLeft == 2)) {
+
+						cube2.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						cube2.position = -leftHandRelativeToHead;
+						grippedObjectIdLeft = 2;
+					}
+					if (cube3.position.x + 0.07 > -leftHandRelativeToHead.x && cube3.position.x - 0.07 < -leftHandRelativeToHead.x &&
+						cube3.position.y + 0.07 > -leftHandRelativeToHead.y && cube3.position.y - 0.07 < -leftHandRelativeToHead.y &&
+						cube3.position.z + 0.07 > -leftHandRelativeToHead.z && cube3.position.z - 0.07 < -leftHandRelativeToHead.z &&
+						(grippedObjectIdLeft == 0 || grippedObjectIdLeft == 3)) {
+
+						cube3.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						cube3.position = -leftHandRelativeToHead;
+						grippedObjectIdLeft = 3;
+					}
+
+					/*if (!leftHandGripped) {
 						cubeArray.push_back(rightHandPos);
 						leftHandGripped = true;
-					}
+					}*/
 				}
 
 				if (handLeftState == HandState_Open) {
 					leftHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
 					leftHandGripped = false;
+					grippedObjectIdLeft = 0;
 				}
 				
 				headPos.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(headPosition.X, headPosition.Y + kinect_position_height, headPosition.Z)), glm::vec3(0.1, 0.1, 0.1));
