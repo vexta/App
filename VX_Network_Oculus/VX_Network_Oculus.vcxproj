@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{400E6BB5-7A30-41E1-9436-E5383D533125}</ProjectGuid>
-    <RootNamespace>VX_Network_Prototype</RootNamespace>
+    <ProjectGuid>{64E10F63-C5EA-4996-AA64-011D35129BB3}</ProjectGuid>
+    <RootNamespace>VX_Network_Oculus</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -57,19 +57,15 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\PropertySheet.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\PropertySheet.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\PropertySheet.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\PropertySheet.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -87,16 +83,17 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>copy VX_Network_Oculus.exe.config "$(TargetPath).config"</Command>
+    </PostBuildEvent>
     <Link>
       <AdditionalDependencies>VX_Network_Lib.lib;AntTweakBar64.lib;LibOVR.lib;opengl32.lib;glew32s.lib;glfw3.lib;kinect20.lib;Kinect20.Fusion.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
     </Link>
-    <PostBuildEvent>
-      <Command>copy VX_Network_Prototype.exe.config "$(TargetPath).config"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -128,17 +125,13 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FinalApp\FinalApp.vcxproj">
-      <Project>{8eefd1c7-ba01-4493-a84d-dae94fe3c7cc}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\OVR_Prototype\OVR_Prototype.vcxproj">
-      <Project>{2bf474fa-ba03-421a-9af2-f35d8f7ecae1}</Project>
-    </ProjectReference>
+    <None Include="VX_Network_Oculus.exe.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\VX_Kinect_Lib\VX_Kinect_Lib.vcxproj">
       <Project>{28cc8f17-ca4e-421f-84c1-c4efa180c76e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\VX_Kinect_Prototype\VX_Kinect_Prototype.vcxproj">
-      <Project>{8b8579cc-8eb6-46d8-9484-c1b4a7cb9054}</Project>
     </ProjectReference>
     <ProjectReference Include="..\VX_Network_Lib\VX_Network_Lib.vcxproj">
       <Project>{0c927629-16c9-43c9-b71a-85e369814cac}</Project>
@@ -149,9 +142,6 @@
     <ProjectReference Include="..\VX_Window_Lib\VX_Window_Lib.vcxproj">
       <Project>{cd98d8be-4b8c-4d00-b952-af70e6ae7442}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="VX_Network_Prototype.exe.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

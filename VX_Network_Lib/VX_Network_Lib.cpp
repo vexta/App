@@ -22,6 +22,7 @@ public:
 	NetLib^ abc = gcnew NetLib();
 };
 
+
 void VX_Network_Lib::KniznicaDLL::Send() {
 	try {
 		Singleton^ a = Singleton::Instance;  //!!!!TypeInitialization was unhandeled The type initializer for 'Singleton' threw an exception.
@@ -86,6 +87,56 @@ int VX_Network_Lib::KniznicaDLL::newDataAvailable() {
 	Singleton^ a = Singleton::Instance;
 	return a->abc->newDataAvailable();
 }
+
+
+void VX_Network_Lib::KniznicaDLL::Send(int Kocka,
+	float lhandx, float lhandy, float lhandz,
+	float rhandx, float rhandy, float rhandz,
+	float k0x, float k0y, float k0z,
+	float k1x, float k1y, float k1z,
+	float k2x, float k2y, float k2z
+	) {
+	try {
+		Singleton^ a = Singleton::Instance;
+		return a->abc->Send(Kocka,
+			lhandx, lhandy, lhandz,
+			rhandx, rhandy, rhandz,
+			k0x, k0y, k0z,
+			k1x, k1y, k1z,
+			k2x, k2y, k2z);
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
+}
+
+void VX_Network_Lib::KniznicaDLL::GetKocky(
+	int *Kocka,
+	float *lhandx, float *lhandy, float *lhandz,
+	float *rhandx, float *rhandy, float *rhandz,
+	float *k0x, float *k0y, float *k0z,
+	float *k1x, float *k1y, float *k1z,
+	float *k2x, float *k2y, float *k2z) {
+	try {
+		Singleton^ a = Singleton::Instance;
+		return a->abc->GetKocky(
+			Kocka,
+			lhandx, lhandy, lhandz,
+			rhandx, rhandy, rhandz,
+			k0x, k0y, k0z,
+			k1x, k1y, k1z,
+			k2x, k2y, k2z);
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
+}
+
+
 
 
 //ukazka pouzitia kodu

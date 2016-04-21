@@ -28,7 +28,15 @@ void NetLib::ZistiVelkostSerializovanehoObjektu() {
 		IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
 		formater->Serialize(ms, os);
 
-		SizeOfSerializedObjekt = ms->Length;
+		SizeOfSerializedObjekt_Mesh = ms->Length;
+
+		
+		ms = gcnew System::IO::MemoryStream();
+		formater = gcnew Formatters::Binary::BinaryFormatter();
+		formater->Serialize(ms, ol_s);
+
+		SizeOfSerializedObjekt_Logika = ms->Length;
+		
 	}
 	catch (Exception^ ex) {
 	#ifdef DEBUG
@@ -45,6 +53,7 @@ void NetLib::Init() {
 	try {
 		address = IPAddress::Parse(ConfigurationSettings::AppSettings["IPAddr"]);
 		endPoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
+		_isOculus = INT16::Parse(ConfigurationSettings::AppSettings["isOculus"]);
 	}
 	catch (Exception^ ex) {
 #ifdef DEBUG
@@ -81,7 +90,62 @@ void NetLib::Init() {
 }
 
 //OK
-void NetLib::Listen() {
+void NetLib::Listen_Oculus() {
+	IPAddress^ address;
+	address = IPAddress::Any;
+
+	IPEndPoint^ endpoint;
+	try {
+		endpoint = gcnew IPEndPoint(address, Int64::Parse(ConfigurationSettings::AppSettings["Port"]));
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
+	
+	    ssocket = gcnew Socket(endpoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
+		ssocket->Bind(endpoint);
+		ssocket->Listen(205);
+		csocket = ssocket->Accept();
+		csocket->ReceiveBufferSize = SizeOfSerializedObjekt_Mesh;
+
+		while (1 && !ExitThread) {
+			try {
+				if (csocket->Connected && csocket->Available >= SizeOfSerializedObjekt_Mesh) { 
+
+					size = csocket->Receive(recieve_buffer, 0, SizeOfSerializedObjekt_Mesh, SocketFlags::None);
+
+					IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
+					System::IO::MemoryStream^ mms = gcnew System::IO::MemoryStream();
+					mms->Write(recieve_buffer, 0, size);
+					mms->Position = 0;
+
+					or = (AppData_Mesh^)formater->Deserialize(mms);
+
+#ifdef DEBUG
+					fprintf(ERROR_OUTPUT, "Velkost prijatych dat Oculus %d \n", or->VertexCount);
+#endif
+					
+					_newData = 1;		//nastav ze ma nove data
+#ifdef DEBUG
+					fprintf(ERROR_OUTPUT, "Prijate >> Oculus %d\n\n", size);
+#endif
+				}
+			}
+				catch (Exception^ ex) {
+#ifdef DEBUG
+					WRITE_ERROR
+					fprintf(ERROR_OUTPUT, "Oculus\n");
+#endif
+		
+		}
+	}
+}
+
+
+
+void NetLib::Listen_Kinect() { //pre Kinect
 	IPAddress^ address;
 	address = IPAddress::Any;
 
@@ -95,41 +159,41 @@ void NetLib::Listen() {
 #endif
 	}
 
+	ssocket = gcnew Socket(endpoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
+	ssocket->Bind(endpoint);
+	ssocket->Listen(205);
+	csocket = ssocket->Accept();
+	csocket->ReceiveBufferSize = SizeOfSerializedObjekt_Logika;
 
-		ssocket = gcnew Socket(endpoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
-		ssocket->Bind(endpoint);
-		ssocket->Listen(205);
-		csocket = ssocket->Accept();
-		csocket->ReceiveBufferSize = SizeOfSerializedObjekt;
+	while (1 && !ExitThread) {
+		try {
+			if (csocket->Connected && csocket->Available >= SizeOfSerializedObjekt_Logika) {
 
-		while (1 && !ExitThread) {
-			try {
-				if (csocket->Connected && csocket->Available >= SizeOfSerializedObjekt) { 
+				size = csocket->Receive(recieve_buffer, 0, SizeOfSerializedObjekt_Logika, SocketFlags::None);
 
-					size = csocket->Receive(recieve_buffer, 0, SizeOfSerializedObjekt, SocketFlags::None);
+				IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
+				System::IO::MemoryStream^ mms = gcnew System::IO::MemoryStream();
+				mms->Write(recieve_buffer, 0, size);
+				mms->Position = 0;
 
-					IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
-					System::IO::MemoryStream^ mms = gcnew System::IO::MemoryStream();
-					mms->Write(recieve_buffer, 0, size);
-					mms->Position = 0;
-
-					or = (AppData^)formater->Deserialize(mms);
+				ol_r = (AppData_Logika^)formater->Deserialize(mms);
 
 #ifdef DEBUG
-					fprintf(ERROR_OUTPUT, "Velkost prijatych dat %d \n", or->VertexCount);
+				fprintf(ERROR_OUTPUT, "Velkost prijatych dat %d \n", size);
 #endif
-					
-					_newData = 1;		//nastav ze ma nove data
+
+				_newData = 1;		//nastav ze ma nove data
 #ifdef DEBUG
-					fprintf(ERROR_OUTPUT, "Prijate >> %d\n\n", size);
+				fprintf(ERROR_OUTPUT, "Prijate >> %d\n\n", size);
 #endif
-				}
 			}
-				catch (Exception^ ex) {
+		}
+		catch (Exception^ ex) {
 #ifdef DEBUG
-					WRITE_ERROR
+			WRITE_ERROR
+			fprintf(ERROR_OUTPUT, "Kinect\n");
 #endif
-		
+
 		}
 	}
 }
@@ -137,17 +201,28 @@ void NetLib::Listen() {
 //ok
 NetLib::NetLib() {
 	try {
+		printf("Pokus o pripajanie sa.\n");
 		ExitThread = false;
 		//ip = nullptr;
 		ssocket = nullptr;
 		csocket = nullptr;
 
-		os = gcnew AppData();
-		or = gcnew AppData();
+		os = gcnew AppData_Mesh();
+		or = gcnew AppData_Mesh();
+
+		ol_s = gcnew AppData_Logika();
+		ol_r = gcnew AppData_Logika();
 
 		ZistiVelkostSerializovanehoObjektu();
 
-		thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen));
+		_isOculus = INT16::Parse(ConfigurationSettings::AppSettings["isOculus"]);
+
+
+		if(_isOculus)
+			thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen_Oculus));
+		else
+			thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen_Kinect));
+
 		thread->Start();
 
 		Init();
@@ -188,7 +263,6 @@ void NetLib::Send() {
 
 		//lsocket->Send(send_buffer);
 		//lsocket->Send();
-
 		System::IO::MemoryStream^ ms = gcnew System::IO::MemoryStream();
 		IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
 		formater->Serialize(ms, os);
@@ -257,6 +331,8 @@ void NetLib::Send(INuiFusionMesh *meshData) {
 				os->vertices[j + 1] = temp[i].y;
 				os->vertices[j + 2] = temp[i].z;
 			}
+			
+			//formater->Serialize(ms, os);
 			array<unsigned char>^ buff = gcnew array<unsigned char>(ms->Length);
 			ms->Position = 0;
 			ms->Read(buff, 0, ms->Length);
@@ -318,14 +394,95 @@ Vector3* NetLib::GetVrcholy(int *velkostpola) {
 	return temp;
 }
 
+void NetLib::Send(int Kocka,
+	float lhandx, float lhandy, float lhandz,
+	float rhandx, float rhandy, float rhandz,
+	float k0x, float k0y, float k0z,
+	float k1x, float k1y, float k1z,
+	float k2x, float k2y, float k2z
+	) {
+	try {
+		if (_isConnected) {
+			System::IO::MemoryStream^ ms = gcnew System::IO::MemoryStream();
+			IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
+			
+			ol_s->random = Kocka;
+
+			ol_s->lhx = lhandx;
+			ol_s->lhy = lhandy;
+			ol_s->lhz = lhandz;
+
+			ol_s->rhx = rhandx;
+			ol_s->rhy = rhandy;
+			ol_s->rhz = rhandz;
+
+			ol_s->k0x = k0x;
+			ol_s->k0y = k0y;
+			ol_s->k0z = k0z;
+
+			ol_s->k1x = k1x;
+			ol_s->k1y = k1y;
+			ol_s->k1z = k1z;
+
+			ol_s->k2x = k2x;
+			ol_s->k2y = k2y;
+			ol_s->k2z = k2z;
+
+			formater->Serialize(ms, ol_s);
+			array<unsigned char>^ buff = gcnew array<unsigned char>(ms->Length);
+			ms->Position = 0;
+			ms->Read(buff, 0, ms->Length);
+
+			lsocket->Send(buff);
+#ifdef DEBUG
+			printf("Odoslane >> %d\n", ms->Length);
+#endif
+		}
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
+}
+void NetLib::GetKocky(
+	int *Kocka,
+	float *lhandx, float *lhandy, float *lhandz,
+	float *rhandx, float *rhandy, float *rhandz,
+	float *k0x, float *k0y, float *k0z,
+	float *k1x, float *k1y, float *k1z,
+	float *k2x, float *k2y, float *k2z) {
+
+	*Kocka = ol_r->random;
+
+	*lhandx = ol_r->lhx;
+	*lhandy = ol_r->lhy;
+	*lhandz = ol_r->lhz;
+
+	*rhandx = ol_r->rhx;
+	*rhandy = ol_r->rhy;
+	*rhandz = ol_r->rhz;
+
+	*k0x = ol_r->k0x;
+	*k0y = ol_r->k0y;
+	*k0z = ol_r->k0z;
+
+	*k1x = ol_r->k1x;
+	*k1y = ol_r->k1y;
+	*k1z = ol_r->k1z;
+
+	*k2x = ol_r->k2x;
+	*k2y = ol_r->k2y;
+	*k2z = ol_r->k2z;
+}
 
 
-AppData::AppData() {
+AppData_Mesh::AppData_Mesh() {
 
 }
 
 //Funkcia Objekt(int i) sluzi IBA na DEBUG-ovacie ucely
-AppData::AppData(int i) {
+AppData_Mesh::AppData_Mesh(int i) {
 	HeadTilt = i;
 
 	HandX = i;
@@ -339,6 +496,6 @@ AppData::AppData(int i) {
 	meshData = nullptr;
 }
 
-AppData::~AppData() {
+AppData_Mesh::~AppData_Mesh() {
 
 }

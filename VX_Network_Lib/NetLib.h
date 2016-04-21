@@ -18,11 +18,11 @@ using namespace System::Collections::Generic;
 typedef double ind;
 
 [Serializable]
-public ref class AppData {
+public ref class AppData_Mesh {
 public:
-	AppData();
-	AppData(int i);
-	~AppData();
+	AppData_Mesh();
+	AppData_Mesh(int i);
+	~AppData_Mesh();
 
 	ind HandX;
 	ind HandY;
@@ -44,6 +44,32 @@ public:
 	//Celkova velkost objektu 1 228 852
 };
 
+[Serializable]
+public ref class AppData_Logika {
+public:
+	int random;
+
+	float lhx;
+	float lhy;
+	float lhz;
+
+	float rhx;
+	float rhy;
+	float rhz;
+
+	float k0x;
+	float k0y;
+	float k0z;
+
+	float k1x;
+	float k1y;
+	float k1z;
+
+	float k2x;
+	float k2y;
+	float k2z;
+};
+
 public ref class NetLib {
 public:
 	NetLib();
@@ -54,12 +80,32 @@ public:
 	void Send(INuiFusionMesh *meshData);
 	int Get();
 	Vector3* GetVrcholy(int *velkostpola);
+
+
+	void Send(int Kocka,
+		float lhandx, float lhandy, float lhandz,
+		float rhandx, float rhandy, float rhandz,
+		float k0x, float k0y, float k0z,
+		float k1x, float k1y, float k1z,
+		float k2x, float k2y, float k2z
+		);
+	void GetKocky(
+		int *Kocka,
+		float *lhandx, float *lhandy, float *lhandz,
+		float *rhandx, float *rhandy, float *rhandz,
+		float *k0x, float *k0y, float *k0z,
+		float *k1x, float *k1y, float *k1z,
+		float *k2x, float *k2y, float *k2z);
+
 	int newDataAvailable();
 private:
 	int _newData = 0;
 	int _isConnected = 0;
+	int _isKinect = 0;
+	int _isOculus = 0;
 
-	int SizeOfSerializedObjekt;
+	int SizeOfSerializedObjekt_Mesh;
+	int SizeOfSerializedObjekt_Logika;
 	
 	array<unsigned char>^ send_buffer = gcnew array<unsigned char>(BUF_LEN);
 	array<unsigned char>^ recieve_buffer = gcnew array<unsigned char>(BUF_LEN);
@@ -77,10 +123,15 @@ private:
 	IPAddress^ ip;
 	int size;
 
-	void Listen();
+	void Listen_Kinect();
+	void Listen_Oculus();
+
 	void Init();
 	void ZistiVelkostSerializovanehoObjektu();
 
-		AppData^ os;
-		AppData^ or;
+		AppData_Mesh^ os;
+		AppData_Mesh^ or;
+
+		AppData_Logika^ ol_s;
+		AppData_Logika^ ol_r;
 };
