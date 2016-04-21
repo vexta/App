@@ -457,7 +457,8 @@ int main() {
 
 		if (data.bodies)
 		{
-			Joint *jointsForFirstPerson = data.ExtractJointsForFirstPerson();
+			int index = 0;
+			Joint *jointsForFirstPerson = data.ExtractJointsForFirstPerson(index);
 			if (jointsForFirstPerson)
 			{
 				const CameraSpacePoint headPosition = jointsForFirstPerson[JointType_Head].Position;
