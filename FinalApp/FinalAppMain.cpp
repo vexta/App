@@ -17,7 +17,7 @@
 const float kinect_position_height(0.78f);
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
-GLuint floorVAO, cubeVAO, cubeVBO, kinectMeshVAO, kinectMeshVBO, sphereVAO, sphereVBO;
+GLuint floorVAO, cubeVAO, cubeVBO, kinectMeshVAO, kinectMeshVBO, kinectSingleHandMeshVAO, kinectSingleHandMeshVBO, sphereVAO, sphereVBO;
 
 glm::mat4 floorModel;
 vxOpenGL::OpenGLShader shader, kinectShader;
@@ -25,7 +25,7 @@ vxOpenGL::OpenGLShader shader, kinectShader;
 bool pressedKeys[1024];
 KinectFacade *kinectFacade;
 //VX_Network_Lib::KniznicaDLL komunikacia;
-
+KinectParameters parameters;
 
 struct sceneObject {
 	glm::mat4 model;
@@ -109,8 +109,7 @@ void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 }
 
 Viewer viewer;
-sceneObject object, kinectMesh, headPos, leftHandPos, rightHandPos, cube1, cube2, cube3, sphere;
-std::vector<sceneObject> cubeArray;
+sceneObject object, kinectMesh, kinectSingleHandMesh, headPos, leftHandPos, rightHandPos, cube1, cube2, cube3, sphere;
 
 
 void processKeyInput(float deltaTime) {
@@ -316,6 +315,9 @@ void init() {
 	glGenVertexArrays(1, &kinectMeshVAO);
 	glGenBuffers(1, &kinectMeshVBO);
 
+	glGenVertexArrays(1, &kinectSingleHandMeshVAO);
+	glGenBuffers(1, &kinectSingleHandMeshVBO);
+
 	//sphere
 	//std::vector<glm::vec4> sphere_vertices;
 	//std::vector<glm::vec3> sphere_normals;
@@ -359,6 +361,13 @@ void init() {
 	kinectMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 	kinectMesh.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
 	kinectMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	kinectSingleHandMesh.model = glm::mat4(1);
+	kinectSingleHandMesh.vao = kinectSingleHandMeshVAO;
+
+	kinectSingleHandMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	kinectSingleHandMesh.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	kinectSingleHandMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
 	headPos.model = glm::mat4(1);
 	headPos.vao = cubeVAO;
@@ -508,11 +517,8 @@ void render(ovrEyeType eye) {
 	cube2.render(shader);
 	cube3.render(shader);
 	kinectMesh.render(kinectShader);
+	kinectSingleHandMesh.render(kinectShader);
 	//sphere.render(shader);
-
-	for (std::vector<sceneObject>::iterator it = cubeArray.begin(); it != cubeArray.end(); it++) {
-		it->render(shader);
-	}
 	
 	glUseProgram(0);
 }
@@ -531,6 +537,7 @@ int main() {
 	cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
 
 	boolean leftHandGripped = false;
+	float lastHandPosition = 0.0f;
 
 	while (!ovrHmdHandle->shouldClose()) {
 		//if (komunikacia.newDataAvailable())		//zisti ci mas nove aktualne data
@@ -542,7 +549,6 @@ int main() {
 		//view = glm::lookAt(viewer.position, viewer.position + viewer.front, viewer.worldUp);
 
 		KinectData data;
-		KinectParameters parameters;
 		//parameters.reconstructionParameters.voxelsPerMeter = 256;
 		//parameters.reconstructionParameters.voxelCountX = 512;
 		//parameters.reconstructionParameters.voxelCountY = 512;
@@ -552,8 +558,18 @@ int main() {
 		//parameters.reconstructionParameters.voxelCountX = 256;
 		//parameters.reconstructionParameters.voxelCountY = 256;
 		parameters.reconstructionParameters.voxelCountZ = 512;
-		parameters.maximumDepth = 4.0;
-		parameters.minimumDepth = 0.5;
+		
+		if (!lastHandPosition)
+		{
+			parameters.maximumDepth = 4.0;
+			parameters.minimumDepth = 0.5;
+		}
+		else
+		{
+			parameters.maximumDepth = lastHandPosition + 0.1;
+			parameters.minimumDepth = lastHandPosition - 0.1;
+		}
+
 		parameters.voxelStep = 2; // remove half of voxels
 		//parameters.reconstructionParameters.voxelsPerMeter = 128;
 		kinectFacade->GetKinectData(data, KinectTypes::MeshData | KinectTypes::BodyData, parameters);
@@ -648,11 +664,6 @@ int main() {
 						cube3.position = -leftHandRelativeToHead;
 						grippedObjectIdLeft = 3;
 					}
-
-					/*if (!leftHandGripped) {
-						cubeArray.push_back(rightHandPos);
-						leftHandGripped = true;
-					}*/
 				}
 
 				if (handLeftState == HandState_Open) {
@@ -669,6 +680,62 @@ int main() {
 				
 			}
 		}
+
+		//if (data.bodies && data.meshData) {
+		//	int index = 0;
+		//	Joint *jointsForFirstPerson = data.ExtractJointsForFirstPerson(index);
+		//	if (jointsForFirstPerson)
+		//	{
+		//		const CameraSpacePoint headPosition = jointsForFirstPerson[JointType_Head].Position;
+		//		const CameraSpacePoint handLeftPosition = jointsForFirstPerson[JointType_HandLeft].Position;
+		//		const CameraSpacePoint handRightPosition = jointsForFirstPerson[JointType_HandRight].Position;
+
+		//		glm::vec3 leftHandRelativeToHead = glm::vec3(headPosition.X, headPosition.Y, headPosition.Z) - glm::vec3(handLeftPosition.X, handLeftPosition.Y, handLeftPosition.Z);
+		//		glm::vec3 rightHandRelativeToHead = glm::vec3(headPosition.X, headPosition.Y, headPosition.Z) - glm::vec3(handRightPosition.X, handRightPosition.Y, handRightPosition.Z);
+
+		//		HandState handRightState, handLeftState;
+
+		//		data.bodies[index]->get_HandRightState(&handRightState);
+		//		data.bodies[index]->get_HandLeftState(&handLeftState);
+
+		//		auto userHeight = ovrHmdHandle->getUserHeight();
+		//		rightHandRelativeToHead.y -= userHeight;
+
+		//		// if mesh data successfully retrieved
+		//		const Vector3 *vertices = nullptr, *normals = nullptr;
+		//		data.meshData->GetVertices(&vertices);
+		//		data.meshData->GetNormals(&normals);
+		//		int vertexCount = data.meshData->VertexCount();
+
+		//		float minX = FLT_MAX, minY = FLT_MAX, minZ = FLT_MAX, maxX = FLT_MIN, maxY = FLT_MIN, maxZ = FLT_MIN, avgX, avgY, avgZ;
+		//		for (int i = 0; i < vertexCount; i++)
+		//		{
+		//			if (vertices[i].x < minX) minX = vertices[i].x;
+		//			if (vertices[i].y < minY) minY = vertices[i].y;
+		//			if (vertices[i].z < minZ) minZ = vertices[i].z;
+
+		//			if (vertices[i].x > maxX) maxX = vertices[i].x;
+		//			if (vertices[i].y > maxY) maxY = vertices[i].y;
+		//			if (vertices[i].z > maxZ) maxZ = vertices[i].z;
+		//		}
+
+		//		avgX = (minX + maxX) / 2;
+		//		avgY = (minY + maxY) / 2;
+		//		avgZ = (minZ + maxZ) / 2;
+
+		//		kinectSingleHandMesh.verticesCnt = vertexCount;
+		//		kinectSingleHandMesh.model = glm::translate(glm::rotate(glm::translate(glm::mat4(1), glm::vec3(-avgX, -avgY, -avgZ)), 180.0f, glm::vec3(1, 0, 0)), -leftHandRelativeToHead);
+
+		//		glBindVertexArray(kinectSingleHandMeshVAO);
+		//		glBindBuffer(GL_ARRAY_BUFFER, kinectSingleHandMeshVBO);
+		//		glBufferData(GL_ARRAY_BUFFER, vertexCount * 3 * sizeof(float), vertices, GL_STREAM_DRAW);
+		//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+		//		glEnableVertexAttribArray(0);
+		//		glBindVertexArray(0);
+
+		//		lastHandPosition = handLeftPosition.Z;
+		//	}
+		//}
 
 		if (data.meshData) {	// if mesh data successfully retrieved
 			const Vector3 *vertices = nullptr, *normals = nullptr;
