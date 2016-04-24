@@ -84,6 +84,11 @@ GLint vx_opengl_namespace_::OpenGLShader::getUniformLocation(const std::string &
 	return glGetUniformLocation(glId_, name.c_str());
 }
 
+GLint vx_opengl_namespace_::OpenGLShader::getAttribLocation(const std::string & name)
+{
+	return glGetAttribLocation(glId_, name.c_str());
+}
+
 void vx_opengl_namespace_::OpenGLShader::setUniformValue(const std::string & name, const GLuint value)
 {
 	glUniform1ui(getUniformLocation(name), value);

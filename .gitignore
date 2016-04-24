@@ -212,3 +212,5 @@ _Pvt_Extensions/
 ModelManifest.xml
 
 *.VC.opendb
+/Resources/OVRPrototype/sphere_vertex_shader
+/Resources/OVRPrototype/sphere_fragment_shader

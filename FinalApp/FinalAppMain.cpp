@@ -1,30 +1,34 @@
 ﻿#include <VX_OVR_Lib.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <list>
+#include <map>
+#include <algorithm>
+
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 #include <NuiKinectFusionApi.h>
 #include <KinectParameters.h>
 #include <KinectTypes.h>
 #include <KinectData.h>
 #include <KinectFacade.h>
 #include <KinectHelper.h>
-#include <VX_Network_Lib.h>
 
 const float kinect_position_height(0.78f);
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
-GLuint floorVAO, cubeVAO, cubeVBO, kinectMeshVAO, kinectMeshVBO, kinectSingleHandMeshVAO, kinectSingleHandMeshVBO, sphereVAO, sphereVBO;
+GLuint floorVAO, cubeVAO, sphereVAO, kinectMeshVAO, kinectMeshVBO, kinectNormalVBO, kinectSingleHandMeshVAO, kinectSingleHandMeshVBO;
 
-glm::mat4 floorModel;
-vxOpenGL::OpenGLShader shader, kinectShader;
+vxOpenGL::OpenGLShader shader;
 
 bool pressedKeys[1024];
+
 KinectFacade *kinectFacade;
-//VX_Network_Lib::KniznicaDLL komunikacia;
 KinectParameters parameters;
 
 struct sceneObject {
@@ -98,18 +102,20 @@ struct Viewer {
 void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 	glUseProgram(shader);
 
+	glBindVertexArray(vao);
+
 	shader.setUniformValueMat4("model", 1, GL_FALSE, glm::value_ptr(model));
+	shader.setUniformValueMat3("normalMatrix", 1, GL_FALSE, glm::value_ptr(glm::mat3(glm::transpose(glm::inverse(model)))));
 	shader.setUniformValue("object.ambient", ambient.x, ambient.y, ambient.z);
 	shader.setUniformValue("object.diffuse", diffuse.x, diffuse.y, diffuse.z);
 	shader.setUniformValue("object.specular", specular.x, specular.y, specular.z);
-
-	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, verticesCnt);
+
 	glBindVertexArray(0);
 }
 
 Viewer viewer;
-sceneObject object, kinectMesh, kinectSingleHandMesh, headPos, leftHandPos, rightHandPos, cube1, cube2, cube3, sphere;
+sceneObject floorMesh, kinectMesh, kinectSingleHandMesh, headPos, leftHandPos, rightHandPos, cube1, cube2, cube3, sphere;
 
 
 void processKeyInput(float deltaTime) {
@@ -182,6 +188,115 @@ void load_obj(const char* filename, std::vector<glm::vec4> &vertices, std::vecto
 	}*/
 }
 
+
+std::vector<float> generateIcosphere(int iterations) {
+	struct Triangle {
+		Triangle(int v1, int v2, int v3) : v1_(v1), v2_(v2), v3_(v3) { }
+		size_t v1_, v2_, v3_;
+	};
+
+	std::vector<glm::vec3> vertices;
+	std::list<Triangle> triangles;
+
+	// zero iteration -> vertices are common corners of orthogonal rectangles
+	float t = (1.0 + glm::sqrt(5.0)) / 2.0;
+
+	vertices.push_back(glm::normalize(glm::vec3(-1.0, t, 0.0)));
+	vertices.push_back(glm::normalize(glm::vec3(1.0, t, 0.0)));
+	vertices.push_back(glm::normalize(glm::vec3(-1.0, -t, 0.0)));
+	vertices.push_back(glm::normalize(glm::vec3(1.0, -t, 0.0)));
+
+	vertices.push_back(glm::normalize(glm::vec3(0.0, -1.0, t)));
+	vertices.push_back(glm::normalize(glm::vec3(0.0, 1.0, t)));
+	vertices.push_back(glm::normalize(glm::vec3(0.0, -1.0, -t)));
+	vertices.push_back(glm::normalize(glm::vec3(0.0, 1.0, -t)));
+
+	vertices.push_back(glm::normalize(glm::vec3(t, 0, -1.0)));
+	vertices.push_back(glm::normalize(glm::vec3(t, 0, 1.0)));
+	vertices.push_back(glm::normalize(glm::vec3(-t, 0, -1.0)));
+	vertices.push_back(glm::normalize(glm::vec3(-t, 0, 1.0)));
+
+	triangles.push_back(Triangle(0, 11, 5));
+	triangles.push_back(Triangle(0, 5, 1));
+	triangles.push_back(Triangle(0, 1, 7));
+	triangles.push_back(Triangle(0, 7, 10));
+	triangles.push_back(Triangle(0, 10, 11));
+
+	triangles.push_back(Triangle(1, 5, 9));
+	triangles.push_back(Triangle(5, 11, 4));
+	triangles.push_back(Triangle(11, 10, 2));
+	triangles.push_back(Triangle(10, 7, 6));
+	triangles.push_back(Triangle(7, 1, 8));
+
+	triangles.push_back(Triangle(3, 9, 4));
+	triangles.push_back(Triangle(3, 4, 2));
+	triangles.push_back(Triangle(3, 2, 6));
+	triangles.push_back(Triangle(3, 6, 8));
+	triangles.push_back(Triangle(3, 8, 9));
+
+	triangles.push_back(Triangle(4, 9, 5));
+	triangles.push_back(Triangle(2, 4, 11));
+	triangles.push_back(Triangle(6, 2, 10));
+	triangles.push_back(Triangle(8, 6, 7));
+	triangles.push_back(Triangle(9, 8, 1));
+
+	auto middlePoint = [&](int i1, int i2) {
+		static std::map<long long, int> cache;
+		long long smallerIndex = i1 < i2 ? i1 : i2;
+		long long greaterIndex = i1 > i2 ? i1 : i2;
+		long long key = (smallerIndex << 32) + greaterIndex;
+
+		auto cached = cache.find(key);
+		if (cached != cache.end()) {
+			return cached->second;
+		}
+		else {
+			vertices.push_back(glm::normalize((vertices[i1] + vertices[i2]) / 2.0f));
+			int index = vertices.size() - 1;
+			cache[key] = index;
+			return index;
+		}
+	};
+
+	int i;
+	for (i = 0; i < iterations; i++) {
+		std::list<Triangle> triangles2;
+
+		std::for_each(triangles.begin(), triangles.end(), [&](Triangle &triangle) {
+
+			int ia = middlePoint(triangle.v1_, triangle.v2_);
+			int ib = middlePoint(triangle.v2_, triangle.v3_);
+			int ic = middlePoint(triangle.v3_, triangle.v1_);
+
+			triangles2.push_back(Triangle(triangle.v1_, ia, ic));
+			triangles2.push_back(Triangle(triangle.v2_, ib, ia));
+			triangles2.push_back(Triangle(triangle.v3_, ic, ib));
+			triangles2.push_back(Triangle(ia, ib, ic));
+		});
+		triangles = triangles2;
+	}
+
+	std::vector<float> sphere(9 * triangles.size());
+	i = 0;
+	for (auto iter = triangles.begin(); iter != triangles.end(); iter++) {
+		sphere[i++] = vertices[iter->v1_].x;
+		sphere[i++] = vertices[iter->v1_].y;
+		sphere[i++] = vertices[iter->v1_].z;
+
+		sphere[i++] = vertices[iter->v2_].x;
+		sphere[i++] = vertices[iter->v2_].y;
+		sphere[i++] = vertices[iter->v2_].z;
+
+		sphere[i++] = vertices[iter->v3_].x;
+		sphere[i++] = vertices[iter->v3_].y;
+		sphere[i++] = vertices[iter->v3_].z;
+	}
+
+	return sphere;
+};
+
+
+
 void init() {
 	auto ovr = vxOvr::OVRWrapper::getInstance();
 	ovr->initialize();
@@ -213,240 +328,279 @@ void init() {
 
 	ovrHmdHandle->setKeyCallback(keyCallback);
 
-	GLfloat cube_vertices[] = {
-
-		// rear side
-		-0.5f, -0.5f, -0.5f,     0.0f,  0.0f, -1.0f,
-		0.5f, -0.5f, -0.5f,     0.0f,  0.0f, -1.0f,
-		0.5f,  0.5f, -0.5f,     0.0f,  0.0f, -1.0f,
-		0.5f,  0.5f, -0.5f,     0.0f,  0.0f, -1.0f,
-		-0.5f,  0.5f, -0.5f,     0.0f,  0.0f, -1.0f,
-		-0.5f, -0.5f, -0.5f,     0.0f,  0.0f, -1.0f,
-
-		// front side
-		-0.5f, -0.5f,  0.5f,     0.0f,  0.0f,  1.0f,
-		0.5f, -0.5f,  0.5f,     0.0f,  0.0f,  1.0f,
-		0.5f,  0.5f,  0.5f,     0.0f,  0.0f,  1.0f,
-		0.5f,  0.5f,  0.5f,     0.0f,  0.0f,  1.0f,
-		-0.5f,  0.5f,  0.5f,     0.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f,  0.5f,     0.0f,  0.0f,  1.0f,
-
-		// left side
-		-0.5f,  0.5f,  0.5f,    -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,    -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,    -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,    -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f,    -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f,    -1.0f,  0.0f,  0.0f,
-
-		// right side
-		0.5f,  0.5f,  0.5f,     1.0f,  0.0f,  0.0f,
-		0.5f,  0.5f, -0.5f,     1.0f,  0.0f,  0.0f,
-		0.5f, -0.5f, -0.5f,     1.0f,  0.0f,  0.0f,
-		0.5f, -0.5f, -0.5f,     1.0f,  0.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,     1.0f,  0.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,     1.0f,  0.0f,  0.0f,
-
-		// bottom side
-		-0.5f, -0.5f, -0.5f,     0.0f, -1.0f,  0.0f,
-		0.5f, -0.5f, -0.5f,     0.0f, -1.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,     0.0f, -1.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,     0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f,     0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,     0.0f, -1.0f,  0.0f,
-
-		// top side
-		-0.5f,  0.5f, -0.5f,     0.0f,  1.0f,  0.0f,
-		0.5f,  0.5f, -0.5f,     0.0f,  1.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,     0.0f,  1.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,     0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f,     0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,     0.0f,  1.0f,  0.0f,
-	};
-
-	GLfloat floor_vertices[] = {
-		-1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
-		-1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
-		1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
-
-		1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
-		1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
-		-1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f
-	};
-
-	GLuint floorVBO;
-
-	glGenVertexArrays(1, &floorVAO);
-	glGenBuffers(1, &floorVBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(floor_vertices), floor_vertices, GL_STATIC_DRAW);
-
-	glBindVertexArray(floorVAO);
-
-	// position
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	// normal
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	//cubes
-	glGenVertexArrays(1, &cubeVAO);
-	glGenBuffers(1, &cubeVBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
-	
-	glBindVertexArray(cubeVAO);
-
-	// position
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	// normal
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
-
-	//kinect body parts
-	glGenVertexArrays(1, &kinectMeshVAO);
-	glGenBuffers(1, &kinectMeshVBO);
-
-	glGenVertexArrays(1, &kinectSingleHandMeshVAO);
-	glGenBuffers(1, &kinectSingleHandMeshVBO);
-
-	//sphere
-	//std::vector<glm::vec4> sphere_vertices;
-	//std::vector<glm::vec3> sphere_normals;
-	//std::vector<GLushort> sphere_elements;
-
-	//load_obj("sphere/sphere.obj", sphere_vertices, sphere_normals, sphere_elements);
-	//
-	//float *sphereVertices = new float[3*sizeof(sphere_vertices)];
-	//int i = 0;
-
-	//for (std::vector<glm::vec4>::iterator it = sphere_vertices.begin(); it != sphere_vertices.end(); ++it){
-	//	sphereVertices[i] = (*it).x;
-	//	sphereVertices[i+1] = (*it).y;
-	//	sphereVertices[i+2] = (*it).z;
-	//	i += 3;
-	//}
-
-	//printf("sphere vertex 1: %f", sphereVertices[0]);
-	//printf("sphere vertex n: %f", sphereVertices[3 * sizeof(sphere_vertices)-1]);
-
-	//glBindVertexArray(sphereVAO);
-	//glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(sphere_vertices) * 3 * sizeof(float), sphereVertices, GL_STREAM_DRAW);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-	//glEnableVertexAttribArray(0);
-	//glBindVertexArray(0);
-
-
-	object.model = glm::translate(glm::scale(glm::mat4(1), glm::vec3(5.0f, 1.0f, 5.0f)), glm::vec3(0.0f, -0.5f, 0.0f));
-
-	object.vao = floorVAO;
-	object.verticesCnt = 6;
-
-	object.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	object.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-	object.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	kinectMesh.model = glm::mat4(1);
-	kinectMesh.vao = kinectMeshVAO;
-
-	kinectMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	kinectMesh.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
-	kinectMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	kinectSingleHandMesh.model = glm::mat4(1);
-	kinectSingleHandMesh.vao = kinectSingleHandMeshVAO;
-
-	kinectSingleHandMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	kinectSingleHandMesh.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
-	kinectSingleHandMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	headPos.model = glm::mat4(1);
-	headPos.vao = cubeVAO;
-	headPos.verticesCnt = 36;
-
-	headPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	headPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
-	headPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	rightHandPos.model = glm::mat4(1);
-	rightHandPos.vao = cubeVAO;
-	rightHandPos.verticesCnt = 36;
-
-	rightHandPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	rightHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
-	rightHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	leftHandPos.model = glm::mat4(1);
-	leftHandPos.vao = cubeVAO;
-	leftHandPos.verticesCnt = 36;
-
-	leftHandPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	leftHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
-	leftHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	//cube1
-	cube1.model = glm::mat4(1);
-	cube1.vao = cubeVAO;
-	cube1.verticesCnt = 36;
-
-	cube1.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	cube1.diffuse = glm::vec3(0.0f, 0.5f, 0.5f);
-	cube1.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	//cube2
-	cube2.model = glm::mat4(1);
-	cube2.vao = cubeVAO;
-	cube2.verticesCnt = 36;
-
-	cube2.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	cube2.diffuse = glm::vec3(0.0f, 0.0f, 1.0f);
-	cube2.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	//cube3
-	cube3.model = glm::mat4(1);
-	cube3.vao = cubeVAO;
-	cube3.verticesCnt = 36;
-
-	cube3.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	cube3.diffuse = glm::vec3(0.5f, 0.5f, 0.0f);
-	cube3.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
-	//sphere
-	sphere.position = glm::vec3(0.22f, 1.0f, -0.7f);
-
-	sphere.model = glm::mat4(1);
-	sphere.vao = sphereVAO;
-	sphere.verticesCnt = 36;
-
-	sphere.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	sphere.diffuse = glm::vec3(0.5f, 0.5f, 0.0f);
-	sphere.specular = glm::vec3(0.2f, 0.2f, 0.2f);
-
 	try {
 		shader.create();
-		shader.attachShaderFile("..//Resources//FinalApp//vertex_shader", GL_VERTEX_SHADER);
-		shader.attachShaderFile("..//Resources//FinalApp//fragment_shader", GL_FRAGMENT_SHADER);
+		shader.attachShaderFile("..//Resources//OVRPrototype//vertex_shader", GL_VERTEX_SHADER);
+		shader.attachShaderFile("..//Resources//OVRPrototype//fragment_shader", GL_FRAGMENT_SHADER);
 		shader.compileAndLink();
-
-		kinectShader.create();
-		kinectShader.attachShaderFile("..//Resources//FinalApp//KinectMeshVertex.txt", GL_VERTEX_SHADER);
-		kinectShader.attachShaderFile("..//Resources//FinalApp//KinectMeshFragment.txt", GL_FRAGMENT_SHADER);
-		kinectShader.compileAndLink();
 	}
 	catch (std::exception e) {
 		std::cout << e.what() << std::endl;
 	}
 
-	// then attempt to construct kinect processor
+	std::vector<GLfloat> cube_vertices{
+
+		// rear side
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		// front side
+		-0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+
+		// left side
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+
+		// right side
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+
+		// bottom side
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		// top side
+		-0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f
+	};
+	std::vector<GLfloat> cube_normals{
+		// rear side
+		0.0f,  0.0f, -1.0f,
+		0.0f,  0.0f, -1.0f,
+		0.0f,  0.0f, -1.0f,
+		0.0f,  0.0f, -1.0f,
+		0.0f,  0.0f, -1.0f,
+		0.0f,  0.0f, -1.0f,
+
+		// front side
+		0.0f,  0.0f,  1.0f,
+		0.0f,  0.0f,  1.0f,
+		0.0f,  0.0f,  1.0f,
+		0.0f,  0.0f,  1.0f,
+		0.0f,  0.0f,  1.0f,
+		0.0f,  0.0f,  1.0f,
+
+		// left side
+		-1.0f,  0.0f,  0.0f,
+		-1.0f,  0.0f,  0.0f,
+		-1.0f,  0.0f,  0.0f,
+		-1.0f,  0.0f,  0.0f,
+		-1.0f,  0.0f,  0.0f,
+		-1.0f,  0.0f,  0.0f,
+
+		// right side
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+
+		// bottom side
+		0.0f, -1.0f,  0.0f,
+		0.0f, -1.0f,  0.0f,
+		0.0f, -1.0f,  0.0f,
+		0.0f, -1.0f,  0.0f,
+		0.0f, -1.0f,  0.0f,
+		0.0f, -1.0f,  0.0f,
+
+		// top side
+		0.0f,  1.0f,  0.0f,
+		0.0f,  1.0f,  0.0f,
+		0.0f,  1.0f,  0.0f,
+		0.0f,  1.0f,  0.0f,
+		0.0f,  1.0f,  0.0f,
+		0.0f,  1.0f,  0.0f,
+	};
+	std::vector<GLfloat> floor_vertices{
+		-1.0f,  0.0f, -1.0f,
+		-1.0f,  0.0f,  1.0f,
+		1.0f,  0.0f, -1.0f,
+
+		1.0f,  0.0f,  1.0f,
+		1.0f,  0.0f, -1.0f,
+		-1.0f,  0.0f,  1.0f,
+	};
+	std::vector<GLfloat> floor_normals{
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f
+	};
+
+	GLuint cubeVBO, cubeNormalsVBO, floorVBO, floorNormalsVBO, sphereVBO;
+
+	glUseProgram(shader);
+	auto positionLoc = shader.getAttribLocation("position");
+	auto normalLoc = shader.getAttribLocation("normal");
+
+	// cube
+	glGenVertexArrays(1, &cubeVAO);
+	glBindVertexArray(cubeVAO);
+
+	// positions
+	glGenBuffers(1, &cubeVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, cube_vertices.size() * sizeof(GLfloat), cube_vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(positionLoc);
+
+	// normals
+	glGenBuffers(1, &cubeNormalsVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeNormalsVBO);
+	glBufferData(GL_ARRAY_BUFFER, cube_normals.size() * sizeof(GLfloat), cube_normals.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(normalLoc);
+
+	glBindVertexArray(0);
+
+	// floor
+	glGenVertexArrays(1, &floorVAO);
+	glBindVertexArray(floorVAO);
+
+	// positions
+	glGenBuffers(1, &floorVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
+	glBufferData(GL_ARRAY_BUFFER, floor_vertices.size() * sizeof(GLfloat), floor_vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(positionLoc);
+
+	// normals
+	glGenBuffers(1, &floorNormalsVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, floorNormalsVBO);
+	glBufferData(GL_ARRAY_BUFFER, floor_normals.size() * sizeof(GLfloat), floor_normals.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(normalLoc);
+
+	glBindVertexArray(0);
+
+	// sphere
+	glGenVertexArrays(1, &sphereVAO);
+	glBindVertexArray(sphereVAO);
+
+	auto sphereVertices = generateIcosphere(3);
+
+	// positions
+	glGenBuffers(1, &sphereVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
+	glBufferData(GL_ARRAY_BUFFER, sphereVertices.size() * sizeof(float), sphereVertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(positionLoc);
+
+	// normals - same as positions
+	glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(normalLoc);
+
+	glBindVertexArray(0);
+
+
+	// kinect buffers
+	glGenVertexArrays(1, &kinectMeshVAO);
+	glBindVertexArray(kinectMeshVAO);
+	
+	glGenBuffers(1, &kinectMeshVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, kinectMeshVBO);
+	glBufferData(GL_ARRAY_BUFFER, cube_vertices.size() * sizeof(float), cube_vertices.data(), GL_STREAM_DRAW);
+
+	glGenBuffers(1, &kinectNormalVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, kinectNormalVBO);
+	glBufferData(GL_ARRAY_BUFFER, cube_normals.size() * sizeof(float), cube_normals.data(), GL_STREAM_DRAW);
+
+	glBindVertexArray(0);
+
+	floorMesh.model = glm::translate(glm::vec3(0.0f, -0.5f, 0.0f)) * glm::scale(glm::vec3(5.0f, 1.0f, 5.0f));
+	kinectMesh.model = glm::mat4(1);
+	kinectSingleHandMesh.model = glm::mat4(1);
+	headPos.model = glm::mat4(1);
+	rightHandPos.model = glm::mat4(1);
+	leftHandPos.model = glm::mat4(1);
+	cube1.model = glm::translate(glm::vec3(-0.15f, 1.4f, -0.5f)) * glm::scale(glm::vec3(0.07, 0.07, 0.07));
+	cube2.model = glm::translate(glm::vec3(0.0f, 1.4f, -0.5f)) * glm::scale(glm::vec3(0.07, 0.07, 0.07));
+	cube3.model = glm::translate(glm::vec3(0.15f, 1.4f, -0.5f)) * glm::scale(glm::vec3(0.07, 0.07, 0.07));
+
+	floorMesh.vao = floorVAO;
+	kinectMesh.vao = kinectMeshVAO;
+	kinectSingleHandMesh.vao = kinectSingleHandMeshVAO;
+	headPos.vao = sphereVAO;
+	rightHandPos.vao = sphereVAO;
+	leftHandPos.vao = sphereVAO;
+	cube1.vao = cubeVAO;
+	cube2.vao = cubeVAO;
+	cube3.vao = cubeVAO;
+
+	floorMesh.verticesCnt = floor_vertices.size() / 3;
+	headPos.verticesCnt = sphereVertices.size() / 3;
+	rightHandPos.verticesCnt = sphereVertices.size() / 3;
+	leftHandPos.verticesCnt = sphereVertices.size() / 3;
+	cube1.verticesCnt = cube_vertices.size() / 3;
+	cube2.verticesCnt = cube_vertices.size() / 3;
+	cube3.verticesCnt = cube_vertices.size() / 3;
+
+	floorMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	floorMesh.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
+	floorMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	kinectMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	kinectMesh.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	kinectMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	kinectSingleHandMesh.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	kinectSingleHandMesh.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	kinectSingleHandMesh.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	headPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	headPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	headPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	rightHandPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	rightHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	rightHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	leftHandPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	leftHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	leftHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	cube1.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	cube1.diffuse = glm::vec3(0.0f, 0.5f, 0.5f);
+	cube1.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	cube2.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	cube2.diffuse = glm::vec3(0.0f, 0.0f, 1.0f);
+	cube2.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	cube3.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	cube3.diffuse = glm::vec3(0.5f, 0.5f, 0.0f);
+	cube3.specular = glm::vec3(0.2f, 0.2f, 0.2f);
+
+	// attempt to construct kinect processor
 	try
 	{
 		kinectFacade = new KinectFacade();
@@ -471,11 +625,9 @@ void render(ovrEyeType eye) {
 
 	glUseProgram(shader);
 
-
 	auto projection = ovrHmdHandle->getProjectionMatrix(eye);
 
 	shader.setUniformValueMat4("projection", 1, GL_TRUE, (float*)&projection);
-	//shader.setUniformValueMat4("view", 1, GL_FALSE, glm::value_ptr(view));
 
 	auto view = ovrHmdHandle->getViewMatrix(eye,
 		OVR::Vector3f(viewer.position.x, viewer.position.y, viewer.position.z),
@@ -494,59 +646,37 @@ void render(ovrEyeType eye) {
 	shader.setUniformValue("light2.diffuse", 0.5f, 0.5f, 0.5f);
 	shader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);
 
-	glUseProgram(kinectShader);
-	kinectShader.setUniformValueMat4("projection", 1, GL_TRUE, (float*)&projection);
+	shader.setUniformValue("viewPos", viewer.position.x, viewer.position.y + ovrHmdHandle->getUserHeight(), viewer.position.z);
 
-	kinectShader.setUniformValueMat4("view", 1, GL_TRUE, (float*)&view);
-
-	kinectShader.setUniformValue("light1.position", 5.0f, 3.0f, 5.0f);
-	kinectShader.setUniformValue("light1.ambient", 0.2f, 0.2f, 0.2f);
-	kinectShader.setUniformValue("light1.diffuse", 0.5f, 0.5f, 0.5f);
-	kinectShader.setUniformValue("light1.specular", 1.0f, 1.0f, 1.0f);
-
-	kinectShader.setUniformValue("light2.position", -5.0f, 3.0f, -5.0f);
-	kinectShader.setUniformValue("light2.ambient", 0.2f, 0.2f, 0.2f);
-	kinectShader.setUniformValue("light2.diffuse", 0.5f, 0.5f, 0.5f);
-	kinectShader.setUniformValue("light2.specular", 1.0f, 1.0f, 1.0f);
-
-	object.render(shader);
+	floorMesh.render(shader);
 	headPos.render(shader);
 	leftHandPos.render(shader);
 	rightHandPos.render(shader);
 	cube1.render(shader);
 	cube2.render(shader);
 	cube3.render(shader);
-	kinectMesh.render(kinectShader);
-	kinectSingleHandMesh.render(kinectShader);
-	//sphere.render(shader);
+	kinectMesh.render(shader);
+	kinectSingleHandMesh.render(shader);
 	
 	glUseProgram(0);
 }
 
 int main() {
 	init();
-	
+
+	glUseProgram(shader);
+	auto positionLoc = shader.getAttribLocation("position");
+	auto normalLoc = shader.getAttribLocation("normal");
+		
 	double t, t0 = glfwGetTime();
 	int grippedObjectIdRight = 0, grippedObjectIdLeft = 0;	//cislo objektu, ktory je prave uchopeny
-
-	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //fialova
-	cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
-	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //modra
-	cube2.position = glm::vec3(0.0f, 1.4f, -0.5f);
-	cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //zlta
-	cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
 
 	boolean leftHandGripped = false;
 	float lastHandPosition = 0.0f;
 
-	while (!ovrHmdHandle->shouldClose()) {
-		//if (komunikacia.newDataAvailable())		//zisti ci mas nove aktualne data
-		//	printf("%d \n",komunikacia.Get());						//ak mas nove data tak ichy ziskaj
-		
+	while (!ovrHmdHandle->shouldClose()) {		
 		t = glfwGetTime();
-
 		processKeyInput(t - t0);
-		//view = glm::lookAt(viewer.position, viewer.position + viewer.front, viewer.worldUp);
 
 		KinectData data;
 		//parameters.reconstructionParameters.voxelsPerMeter = 256;
@@ -748,15 +878,20 @@ int main() {
 
 			//kinectMesh.model = glm::rotate(glm::mat4(1), 180.0f, glm::vec3(0, 0, 1));
 
+			glUseProgram(shader);
+			glBindVertexArray(kinectMeshVAO);			
 
-			glBindVertexArray(kinectMeshVAO);
 			glBindBuffer(GL_ARRAY_BUFFER, kinectMeshVBO);
-			glBufferData(GL_ARRAY_BUFFER, vertexCount * 3 * sizeof(float), vertices, GL_STREAM_DRAW);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-			glEnableVertexAttribArray(0);
-			glBindVertexArray(0);
+			glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float), vertices, GL_STREAM_DRAW);
+			glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(positionLoc);
 
-			//komunikacia.Send(data.meshData->VertexCount, data.meshData->GetVertices);		//posli nove ziskane data   //pole vektorov a ich dlzku
+			glBindBuffer(GL_ARRAY_BUFFER, kinectNormalVBO);
+			glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float), normals, GL_STREAM_DRAW);
+			glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(normalLoc);
+
+			glBindVertexArray(0);
 		}
 
 		ovrHmdHandle->getTrackingState();

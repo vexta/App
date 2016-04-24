@@ -27,6 +27,7 @@ namespace vx_opengl_namespace_ {
 		void deleteShader();
 
 		GLint getUniformLocation(const std::string &name);
+		GLint getAttribLocation(const std::string &name);
 
 		void setUniformValue(const std::string &name, const GLuint value);
 		void setUniformValue(const std::string &name, const GLuint valueA, const GLuint valueB);
@@ -69,12 +70,6 @@ namespace vx_opengl_namespace_ {
 		void setUniformValueMat4x2(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
 		void setUniformValueMat3x4(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
 		void setUniformValueMat4x3(const std::string &name, GLsizei count, GLboolean transpose, const GLfloat *value);
-
-		/* FUTURE PLANS
-		void collectAllUniforms();
-		void bind();
-		void 
-		*/
 		
 		operator GLuint();
 	private:
