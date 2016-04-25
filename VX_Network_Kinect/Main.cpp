@@ -355,7 +355,7 @@ void init() {
 	rightHandPos.verticesCnt = 36;
 
 	rightHandPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	rightHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	rightHandPos.diffuse = glm::vec3(1.0f, 1.0f, 0.0f);
 	rightHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
 	leftHandPos.model = glm::mat4(1);
@@ -363,7 +363,7 @@ void init() {
 	leftHandPos.verticesCnt = 36;
 
 	leftHandPos.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-	leftHandPos.diffuse = glm::vec3(0.45f, 0.96f, 0.078f);
+	leftHandPos.diffuse = glm::vec3(1.0f, 1.0f, 0.0f);
 	leftHandPos.specular = glm::vec3(0.2f, 0.2f, 0.2f);
 
 	//cube1
@@ -506,6 +506,7 @@ int main() {
 
 	double t, t0 = glfwGetTime();
 
+	//inicialzacia kociek - treba zistit co tym chcel basnik povedat
 	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //fialova
 	cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
 	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //modra
@@ -589,7 +590,7 @@ int main() {
 
 				if (handRightState == HandState_Closed) {
 					printf("ruka zavreta\n");
-					rightHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+					rightHandPos.diffuse = glm::vec3(1.0f, 1.0f, 0.0f);
 
 					/*if (cube.position.x + 0.05 > -rightHandRelativeToHead.x && cube.position.x - 0.05 < -rightHandRelativeToHead.x &&
 						cube.position.y + 0.05 > -rightHandRelativeToHead.y && cube.position.y - 0.05 < -rightHandRelativeToHead.y &&
@@ -601,7 +602,7 @@ int main() {
 				}
 
 				if (handRightState == HandState_Open) {
-					rightHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+					rightHandPos.diffuse = glm::vec3(1.0f, 1.0f, 0.0f);
 				}
 
 				/*if (handLeftState == HandState_Closed) {
@@ -613,7 +614,7 @@ int main() {
 				}*/
 
 				if (handLeftState == HandState_Open) {
-					leftHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+					leftHandPos.diffuse = glm::vec3(1.0f, 1.0f, 0.0f);
 					leftHandGripped = false;
 				}
 

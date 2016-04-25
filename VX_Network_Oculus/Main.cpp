@@ -1,11 +1,17 @@
 #include <VX_OVR_Lib.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
+
+
+
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 #include <NuiKinectFusionApi.h>
 #include <KinectParameters.h>
 #include <KinectTypes.h>
@@ -17,16 +23,25 @@
 const float kinect_position_height(0.78f);
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
-GLuint floorVAO, cubeVAO, cubeVBO, kinectMeshVAO, kinectMeshVBO, kinectMeshRecievedVAO, kinectMeshRecievedVBO, sphereVAO, sphereVBO;
+GLuint floorVAO, 
+cubeVAO, 
+cubeVBO, 
+kinectMeshVAO, 
+kinectMeshVBO, 
+kinectMeshRecievedVAO, 
+kinectMeshRecievedVBO, 
+sphereVAO, 
+sphereVBO;
 
-glm::mat4 floorModel;
-vxOpenGL::OpenGLShader shader, kinectShader;
+glm::mat4 floorModel;							//
+vxOpenGL::OpenGLShader shader, kinectShader;	// shader
 
 bool pressedKeys[1024];
 KinectFacade *kinectFacade;
 VX_Network_Lib::KniznicaDLL komunikacia;
 
 int recievedVertexCount = 0;
+int recievedNormalCount = 0;
 
 struct sceneObject {
 	glm::mat4 model;
@@ -110,7 +125,10 @@ void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 }
 
 Viewer viewer;
-sceneObject object, kinectMesh, kinectMeshRecieved, headPos, leftHandPos, rightHandPos, cube1, cube2, cube3, sphere;
+sceneObject object, kinectMesh, 
+			kinectMeshRecieved, 
+			headPos, leftHandPos, rightHandPos, 
+			cube1, cube2, cube3, sphere;
 
 std::vector<sceneObject> cubeArray;
 
@@ -511,6 +529,10 @@ int random(int min, int max) {
 int main() {
 	init();
 
+
+
+
+
 	double t, t0 = glfwGetTime();
 	int grippedObjectIdRight = 0, grippedObjectIdLeft = 0;	//cislo objektu, ktory je prave uchopeny
 
@@ -588,15 +610,15 @@ int main() {
 
 				if (handRightState == HandState_Closed) {
 					printf("ruka zavreta\n");
-					rightHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+					rightHandPos.diffuse = glm::vec3(1.0f, 0.5f, 0.0f);
 
 					if (cube1.position.x + 0.07 > -rightHandRelativeToHead.x && cube1.position.x - 0.07 < -rightHandRelativeToHead.x &&
 						cube1.position.y + 0.07 > -rightHandRelativeToHead.y && cube1.position.y - 0.07 < -rightHandRelativeToHead.y &&
 						cube1.position.z + 0.07 > -rightHandRelativeToHead.z && cube1.position.z - 0.07 < -rightHandRelativeToHead.z &&
 						(grippedObjectIdRight == 0 || grippedObjectIdRight == 1)) {
 
-						cube1.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
-						cube1.position = -rightHandRelativeToHead;
+						//cube1.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						//cube1.position = -rightHandRelativeToHead;
 						grippedObjectIdRight = 1;
 					}
 					if (cube2.position.x + 0.07 > -rightHandRelativeToHead.x && cube2.position.x - 0.07 < -rightHandRelativeToHead.x &&
@@ -604,8 +626,8 @@ int main() {
 						cube2.position.z + 0.07 > -rightHandRelativeToHead.z && cube2.position.z - 0.07 < -rightHandRelativeToHead.z &&
 						(grippedObjectIdRight == 0 || grippedObjectIdRight == 2)) {
 
-						cube2.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
-						cube2.position = -rightHandRelativeToHead;
+						//cube2.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						//cube2.position = -rightHandRelativeToHead;
 						grippedObjectIdRight = 2;
 					}
 					if (cube3.position.x + 0.07 > -rightHandRelativeToHead.x && cube3.position.x - 0.07 < -rightHandRelativeToHead.x &&
@@ -613,27 +635,27 @@ int main() {
 						cube3.position.z + 0.07 > -rightHandRelativeToHead.z && cube3.position.z - 0.07 < -rightHandRelativeToHead.z &&
 						(grippedObjectIdRight == 0 || grippedObjectIdRight == 3)) {
 
-						cube3.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
-						cube3.position = -rightHandRelativeToHead;
+						//cube3.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						//cube3.position = -rightHandRelativeToHead;
 						grippedObjectIdRight = 3;
 					}
 				}
 
 				if (handRightState == HandState_Open) {
-					rightHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+					rightHandPos.diffuse = glm::vec3(1.0f, 1.0f, 0.0f);
 					grippedObjectIdRight = 0;
 				}
 
 				if (handLeftState == HandState_Closed) {
-					leftHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+					leftHandPos.diffuse = glm::vec3(1.0f, 0.5f, 0.0f);
 
 					if (cube1.position.x + 0.07 > -leftHandRelativeToHead.x && cube1.position.x - 0.07 < -leftHandRelativeToHead.x &&
 						cube1.position.y + 0.07 > -leftHandRelativeToHead.y && cube1.position.y - 0.07 < -leftHandRelativeToHead.y &&
 						cube1.position.z + 0.07 > -leftHandRelativeToHead.z && cube1.position.z - 0.07 < -leftHandRelativeToHead.z &&
 						(grippedObjectIdLeft == 0 || grippedObjectIdLeft == 1)) {
 
-						cube1.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
-						cube1.position = -leftHandRelativeToHead;
+						//cube1.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						//cube1.position = -leftHandRelativeToHead;
 						grippedObjectIdLeft = 1;
 					}
 					if (cube2.position.x + 0.07 > -leftHandRelativeToHead.x && cube2.position.x - 0.07 < -leftHandRelativeToHead.x &&
@@ -641,8 +663,8 @@ int main() {
 						cube2.position.z + 0.07 > -leftHandRelativeToHead.z && cube2.position.z - 0.07 < -leftHandRelativeToHead.z &&
 						(grippedObjectIdLeft == 0 || grippedObjectIdLeft == 2)) {
 
-						cube2.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
-						cube2.position = -leftHandRelativeToHead;
+						//cube2.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						//cube2.position = -leftHandRelativeToHead;
 						grippedObjectIdLeft = 2;
 					}
 					if (cube3.position.x + 0.07 > -leftHandRelativeToHead.x && cube3.position.x - 0.07 < -leftHandRelativeToHead.x &&
@@ -650,8 +672,8 @@ int main() {
 						cube3.position.z + 0.07 > -leftHandRelativeToHead.z && cube3.position.z - 0.07 < -leftHandRelativeToHead.z &&
 						(grippedObjectIdLeft == 0 || grippedObjectIdLeft == 3)) {
 
-						cube3.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
-						cube3.position = -leftHandRelativeToHead;
+						//cube3.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+						//cube3.position = -leftHandRelativeToHead;
 						grippedObjectIdLeft = 3;
 					}
 
@@ -662,10 +684,40 @@ int main() {
 				}
 
 				if (handLeftState == HandState_Open) {
-					leftHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+					leftHandPos.diffuse = glm::vec3(1.0f, 1.0f, 0.0f);
 					leftHandGripped = false;
 					grippedObjectIdLeft = 0;
 				}
+
+
+				sceneObject* presuvanaKocka;
+
+				switch (grippedObjectIdLeft) {
+				case 1: presuvanaKocka = &cube1; break;
+				case 2: presuvanaKocka = &cube2; break;
+				case 3: presuvanaKocka = &cube3; break;
+				default: presuvanaKocka = nullptr;
+				}
+
+				if (presuvanaKocka)
+				{
+					presuvanaKocka->model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+					presuvanaKocka->position = -leftHandRelativeToHead;
+				}
+
+				switch (grippedObjectIdRight) {
+				case 1: presuvanaKocka = &cube1; break;
+				case 2: presuvanaKocka = &cube2; break;
+				case 3: presuvanaKocka = &cube3; break;
+				default: presuvanaKocka = nullptr;
+				}
+
+				if (presuvanaKocka)
+				{
+					presuvanaKocka->model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.07, 0.07, 0.07));
+					presuvanaKocka->position = -rightHandRelativeToHead;
+				}
+
 
 				headPos.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(headPosition.X, headPosition.Y + kinect_position_height, headPosition.Z)), glm::vec3(0.1, 0.1, 0.1));
 				leftHandPos.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
@@ -685,21 +737,20 @@ int main() {
 				float treshhold_reset = 1.7;
 
 				if (cube1.position.y>treshhold_color)
-					if(vyvolena_kocka=0)
-						cube1.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
-					else
+					if(vyvolena_kocka == 0)
 						cube1.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+					else
+						cube1.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 				if (cube2.position.y>treshhold_color)
-					if (vyvolena_kocka = 1)
-						cube2.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
-					else
+					if (vyvolena_kocka == 1)
 						cube2.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
-				if (cube3.position.y>treshhold_color)
-					if (vyvolena_kocka = 2)
-						cube3.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 					else
+						cube2.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+				if (cube3.position.y>treshhold_color)
+					if (vyvolena_kocka == 2)
 						cube3.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
-
+					else
+						cube3.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 				if (cube1.position.y > treshhold_reset || cube2.position.y > treshhold_reset || cube3.position.y > treshhold_reset) {
 					vyvolena_kocka = random(0, 3);
 					cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //fialova
@@ -712,6 +763,9 @@ int main() {
 					cube1.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
 					cube2.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
 					cube3.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+
+					grippedObjectIdLeft = 0;
+					grippedObjectIdRight = 0;
 				}
 			}
 		}
@@ -755,7 +809,7 @@ int main() {
 			//kinectMesh.model = glm::rotate(glm::mat4(1), 180.0f, glm::vec3(0, 0, 1));
 			//if (komunikacia.newDataAvailable())
 			if (komunikacia.newDataAvailable()) {
-				vertices = komunikacia.GetVrcholy(&recievedVertexCount);
+				vertices = komunikacia.GetVrcholy(&recievedVertexCount, &recievedNormalCount, &normals);
 				//printf("%d \n", recievedVertexCount);
 				//data.meshData->GetVertices(&vertices);
 				//recievedVertexCount = data.meshData->VertexCount();

@@ -7,10 +7,11 @@
 namespace VX_Network_Lib {
 	class __declspec(dllexport) KniznicaDLL {
 	public:
+		int  isOculus();
 		void Send();
 		void Send(int cislo);
 		void Send(INuiFusionMesh *meshData);
-		Vector3* GetVrcholy(int *pocet);
+		Vector3* GetVrcholy(int *vertexcount, int* normalcount, const Vector3** normals);
 
 		void Send(int Kocka,
 			float lhandx, float lhandy, float lhandz,

@@ -36,8 +36,10 @@ public:
 	INuiFusionMesh *meshData;
 
 	int VertexCount;
+	int NormalCount;
 
 	array<float>^ vertices = gcnew array<float>(3 * VELKOSTPOLA);
+	array<float>^ normals  = gcnew array<float>(3 * VELKOSTPOLA);
 
 	//array<unsigned char>^ IR = gcnew array<unsigned char>(640 * 480);
 	//array<unsigned char>^ RGB = gcnew array<unsigned char>(640 * 480 * 3);
@@ -74,12 +76,13 @@ public ref class NetLib {
 public:
 	NetLib();
 	~NetLib();
+	int isOculus();
 	void Send();
 	void Send(int cislo); //uint8_t cislo[]
 						  //int Get();
 	void Send(INuiFusionMesh *meshData);
 	int Get();
-	Vector3* GetVrcholy(int *velkostpola);
+	Vector3* GetVrcholy(int *vertexcount, int* normalcount, const Vector3** normals);
 
 
 	void Send(int Kocka,

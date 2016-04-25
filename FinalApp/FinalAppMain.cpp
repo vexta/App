@@ -18,11 +18,19 @@
 #include <KinectData.h>
 #include <KinectFacade.h>
 #include <KinectHelper.h>
+#include <VX_Network_Lib.h>
 
 const float kinect_position_height(0.78f);
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
-GLuint floorVAO, cubeVAO, sphereVAO, kinectMeshVAO, kinectMeshVBO, kinectNormalVBO, kinectSingleHandMeshVAO, kinectSingleHandMeshVBO;
+GLuint	floorVAO, 
+		cubeVAO, 
+		sphereVAO, 
+		kinectMeshVAO, 
+		kinectMeshVBO, 
+		kinectNormalVBO,
+		kinectSingleHandMeshVAO, 
+		kinectSingleHandMeshVBO;
 
 vxOpenGL::OpenGLShader shader;
 
@@ -30,6 +38,11 @@ bool pressedKeys[1024];
 
 KinectFacade *kinectFacade;
 KinectParameters parameters;
+
+VX_Network_Lib::KniznicaDLL komunikacia;		//pridane
+
+int recievedVertexCount = 0;
+int recievedNormalCount = 0;
 
 struct sceneObject {
 	glm::mat4 model;
@@ -115,7 +128,10 @@ void sceneObject::render(vxOpenGL::OpenGLShader &shader) {
 }
 
 Viewer viewer;
-sceneObject floorMesh, kinectMesh, kinectSingleHandMesh, headPos, leftHandPos, rightHandPos, cube1, cube2, cube3, sphere;
+sceneObject floorMesh, kinectMesh, 
+			kinectSingleHandMesh, 
+			headPos, leftHandPos, rightHandPos, 
+			cube1, cube2, cube3, sphere;
 
 
 void processKeyInput(float deltaTime) {
@@ -187,7 +203,6 @@ void load_obj(const char* filename, std::vector<glm::vec4> &vertices, std::vecto
 		normals[ia] = normals[ib] = normals[ic] = normal;
 	}*/
 }
-
 
 std::vector<float> generateIcosphere(int iterations) {
 	struct Triangle {
@@ -294,8 +309,6 @@ std::vector<float> generateIcosphere(int iterations) {
 
 	return sphere;
 };
-
-
 
 void init() {
 	auto ovr = vxOvr::OVRWrapper::getInstance();
@@ -661,6 +674,10 @@ void render(ovrEyeType eye) {
 	glUseProgram(0);
 }
 
+int random(int min, int max) {
+	return min + rand() % (max - min);
+}
+
 int main() {
 	init();
 
@@ -671,12 +688,50 @@ int main() {
 	double t, t0 = glfwGetTime();
 	int grippedObjectIdRight = 0, grippedObjectIdLeft = 0;	//cislo objektu, ktory je prave uchopeny
 
+	
+	//inicialzacia kociek - treba zistit co tym chcel basnik povedat
+	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //fialova
+	cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
+	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //modra
+	cube2.position = glm::vec3(0.0f, 1.4f, -0.5f);
+	cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //zlta
+	cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
+	
+
 	boolean leftHandGripped = false;
 	float lastHandPosition = 0.0f;
+
+	static int vyvolena_kocka = random(0, 3);
 
 	while (!ovrHmdHandle->shouldClose()) {		
 		t = glfwGetTime();
 		processKeyInput(t - t0);
+
+		// vyfarbenie kociek 
+		if (!komunikacia.isOculus()) {
+			float lx, ly, lz,
+				rx, ry, rz,
+				k1x, k1y, k1z, k2x, k2y, k2z, k3x, k3y, k3z;
+
+			komunikacia.GetKocky(&vyvolena_kocka, &lx, &ly, &lz, &rx, &ry, &rz, &k1x, &k1y, &k1z, &k2x, &k2y, &k2z, &k3x, &k3y, &k3z);
+			cube1.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+			cube2.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+			cube3.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+			switch (vyvolena_kocka) {
+			case 0: cube1.diffuse = glm::vec3(0.0f, 1.0f, 0.0f); break;
+			case 1: cube2.diffuse = glm::vec3(0.0f, 1.0f, 0.0f); break;
+			case 2: cube3.diffuse = glm::vec3(0.0f, 1.0f, 0.0f); break;
+			default:
+				break;
+			}
+
+			leftHandPos.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(lx, ly, -lz)), glm::vec3(0.07, 0.07, 0.07));
+			rightHandPos.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(rx, ry, -rz)), glm::vec3(0.07, 0.07, 0.07));
+			cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(k1x, k1y, -k1z)), glm::vec3(0.07, 0.07, 0.07)); //zlta
+			cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(k2x, k2y, -k2z)), glm::vec3(0.07, 0.07, 0.07)); //zlta
+			cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(k3x, k3y, -k3z)), glm::vec3(0.07, 0.07, 0.07)); //zlta
+		}
+
 
 		KinectData data;
 		//parameters.reconstructionParameters.voxelsPerMeter = 256;
@@ -704,7 +759,7 @@ int main() {
 		//parameters.reconstructionParameters.voxelsPerMeter = 128;
 		kinectFacade->GetKinectData(data, KinectTypes::MeshData | KinectTypes::BodyData, parameters);
 
-		if (data.bodies)
+		if (data.bodies && komunikacia.isOculus())
 		{
 			int index = 0;
 			Joint *jointsForFirstPerson = data.ExtractJointsForFirstPerson(index);
@@ -727,7 +782,7 @@ int main() {
 				rightHandRelativeToHead.y -= userHeight;
 
 				if (handRightState == HandState_Closed) {
-					printf("ruka zavreta\n");
+					//printf("ruka zavreta\n");
 					rightHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 
 					if (cube1.position.x + 0.07 > -rightHandRelativeToHead.x && cube1.position.x - 0.07 < -rightHandRelativeToHead.x &&
@@ -806,8 +861,52 @@ int main() {
 				leftHandPos.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
 				rightHandPos.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
 				
-				printf("%f %f %f\n", handLeftPosition.X, handLeftPosition.Y, handLeftPosition.Z);
+				//printf("%f %f %f\n", handLeftPosition.X, handLeftPosition.Y, handLeftPosition.Z);
 				
+				if (komunikacia.isOculus()) {
+					komunikacia.Send(
+						vyvolena_kocka,
+						-leftHandRelativeToHead.x, -leftHandRelativeToHead.y, -leftHandRelativeToHead.z,
+						-rightHandRelativeToHead.x, -rightHandRelativeToHead.y, -rightHandRelativeToHead.z,
+						cube1.position.x, cube1.position.y, cube1.position.z,
+						cube2.position.x, cube2.position.y, cube2.position.z,
+						cube3.position.x, cube3.position.y, cube3.position.z
+						);
+					float treshhold_color = 1.5;
+					float treshhold_reset = 1.7;
+
+					if (cube1.position.y > treshhold_color)
+						if (vyvolena_kocka == 0)
+							cube1.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+						else
+							cube1.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+					if (cube2.position.y > treshhold_color)
+						if (vyvolena_kocka == 1)
+							cube2.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+						else
+							cube2.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+					if (cube3.position.y > treshhold_color)
+						if (vyvolena_kocka == 2)
+							cube3.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+						else
+							cube3.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+					if (cube1.position.y > treshhold_reset || cube2.position.y > treshhold_reset || cube3.position.y > treshhold_reset) {
+						vyvolena_kocka = random(0, 3);
+						cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //fialova
+						cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
+						cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //modra
+						cube2.position = glm::vec3(0.0f, 1.4f, -0.5f);
+						cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //zlta
+						cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
+
+						cube1.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+						cube2.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+						cube3.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+
+						grippedObjectIdLeft = 0;
+						grippedObjectIdRight = 0;
+					}
+				}
 			}
 		}
 
@@ -867,7 +966,41 @@ int main() {
 		//	}
 		//}
 
-		if (data.meshData) {	// if mesh data successfully retrieved
+		if (komunikacia.isOculus()) {
+			//if (data.meshData) {	// if mesh data successfully retrieved
+				const Vector3 *vertices = nullptr, *normals = nullptr;
+				//data.meshData->GetVertices(&vertices);
+				//data.meshData->GetNormals(&normals);
+				//int vertexCount = data.meshData->VertexCount();
+				if (komunikacia.newDataAvailable()) {
+					vertices = komunikacia.GetVrcholy(&recievedVertexCount, &recievedNormalCount, &normals);
+					//printf("%d \n", recievedVertexCount);
+					//data.meshData->GetVertices(&vertices);
+					//recievedVertexCount = data.meshData->VertexCount();
+				}
+
+				kinectMesh.verticesCnt = recievedVertexCount;
+				kinectMesh.model = glm::translate(glm::rotate(glm::mat4(1), 180.0f, glm::vec3(1, 0, 0)), glm::vec3(0, 1.0, 2.5));
+
+				//kinectMesh.model = glm::rotate(glm::mat4(1), 180.0f, glm::vec3(0, 0, 1));
+
+				glUseProgram(shader);
+				glBindVertexArray(kinectMeshVAO);
+
+				glBindBuffer(GL_ARRAY_BUFFER, kinectMeshVBO);
+				glBufferData(GL_ARRAY_BUFFER, recievedVertexCount * 3 * sizeof(float), vertices, GL_STREAM_DRAW);
+				glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(positionLoc);
+
+				glBindBuffer(GL_ARRAY_BUFFER, kinectNormalVBO);
+				glBufferData(GL_ARRAY_BUFFER, recievedNormalCount * 3 * sizeof(float), normals, GL_STREAM_DRAW);
+				glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(normalLoc);
+
+				glBindVertexArray(0);
+			//}
+		}
+		else if (data.meshData) {
 			const Vector3 *vertices = nullptr, *normals = nullptr;
 			data.meshData->GetVertices(&vertices);
 			data.meshData->GetNormals(&normals);
@@ -876,23 +1009,15 @@ int main() {
 			kinectMesh.verticesCnt = vertexCount;
 			kinectMesh.model = glm::translate(glm::rotate(glm::mat4(1), 180.0f, glm::vec3(1, 0, 0)), glm::vec3(0.0, -2.0, 0.0));
 
-			//kinectMesh.model = glm::rotate(glm::mat4(1), 180.0f, glm::vec3(0, 0, 1));
-
-			glUseProgram(shader);
-			glBindVertexArray(kinectMeshVAO);			
-
-			glBindBuffer(GL_ARRAY_BUFFER, kinectMeshVBO);
-			glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float), vertices, GL_STREAM_DRAW);
-			glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(positionLoc);
-
-			glBindBuffer(GL_ARRAY_BUFFER, kinectNormalVBO);
-			glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float), normals, GL_STREAM_DRAW);
-			glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(normalLoc);
-
-			glBindVertexArray(0);
+			static int count = 0;
+			//if (count++ > 2) {
+			//	count = 0;
+			//	printf("     %d \n", kinectMesh.verticesCnt);
+			komunikacia.Send(data.meshData);		//posli nove ziskane data   //pole vektorov a ich dlzku
+													//}
 		}
+
+
 
 		ovrHmdHandle->getTrackingState();
 

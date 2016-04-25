@@ -5,10 +5,9 @@
 #include "NetLib.h"
 #include "VX_Network_Lib.h"
 
-#define DEBUG
+//#define DEBUG
 #define ERROR_OUTPUT (stdout)
 #define WRITE_ERROR fprintf(ERROR_OUTPUT, "%s\n\n", ex->ToString());
-
 
 public ref class Singleton {
 private:
@@ -22,6 +21,17 @@ public:
 	NetLib^ abc = gcnew NetLib();
 };
 
+int VX_Network_Lib::KniznicaDLL::isOculus() {
+	try {
+		Singleton^ a = Singleton::Instance;
+		return a->abc->isOculus();
+	}
+	catch (Exception^ ex) {
+#ifdef DEBUG
+		WRITE_ERROR
+#endif
+	}
+}
 
 void VX_Network_Lib::KniznicaDLL::Send() {
 	try {
@@ -70,11 +80,11 @@ int VX_Network_Lib::KniznicaDLL::Get() {
 #endif
 	}
 }
-
-Vector3* VX_Network_Lib::KniznicaDLL::GetVrcholy(int *pocet) {
+//vrcholy (int vertexcount, int normalcount, vector3* normals)
+Vector3* VX_Network_Lib::KniznicaDLL::GetVrcholy(int *vertexcount, int* normalcount, const Vector3** normals) {
 	try {
 		Singleton^ a = Singleton::Instance;
-		return a->abc->GetVrcholy(pocet);
+		return a->abc->GetVrcholy(vertexcount, normalcount, normals);
 	}
 	catch (Exception^ ex) {
 #ifdef DEBUG
@@ -135,8 +145,6 @@ void VX_Network_Lib::KniznicaDLL::GetKocky(
 #endif
 	}
 }
-
-
 
 
 //ukazka pouzitia kodu

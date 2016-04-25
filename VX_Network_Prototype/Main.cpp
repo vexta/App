@@ -25,6 +25,7 @@ KinectFacade *kinectFacade;
 VX_Network_Lib::KniznicaDLL komunikacia;
 
 int recievedVertexCount = 0;
+int recievedNormalCount = 0;
 
 struct sceneObject {
 	glm::mat4 model;
@@ -551,7 +552,7 @@ int main() {
 			//kinectMesh.model = glm::rotate(glm::mat4(1), 180.0f, glm::vec3(0, 0, 1));
 			//if (komunikacia.newDataAvailable())
 			if (komunikacia.newDataAvailable()) {
-				vertices = komunikacia.GetVrcholy(&recievedVertexCount);
+				vertices = komunikacia.GetVrcholy(&recievedVertexCount, &recievedNormalCount, &normals);
 				//printf("%d \n", recievedVertexCount);
 				//data.meshData->GetVertices(&vertices);
 				//recievedVertexCount = data.meshData->VertexCount();

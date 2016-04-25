@@ -17,7 +17,7 @@ using namespace System::Configuration;
 /*auto main() -> int {
 }*/
 
-#define DEBUG
+//#define DEBUG
 #define ERROR_OUTPUT (stdout)
 #define WRITE_ERROR fprintf(ERROR_OUTPUT, "%s\n\n", ex->ToString());
 
@@ -45,6 +45,43 @@ void NetLib::ZistiVelkostSerializovanehoObjektu() {
 	}
 }
 
+//ok
+NetLib::NetLib() {
+	try {
+		printf("Pokus o pripajanie sa.\n");
+		ExitThread = false;
+		//ip = nullptr;
+		ssocket = nullptr;
+		csocket = nullptr;
+
+		os = gcnew AppData_Mesh();
+		or = gcnew AppData_Mesh();
+
+		ol_s = gcnew AppData_Logika();
+		ol_r = gcnew AppData_Logika();
+
+		ZistiVelkostSerializovanehoObjektu();
+
+		_isOculus = INT16::Parse(ConfigurationSettings::AppSettings["isOculus"]);
+		
+		if (_isOculus)
+			thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen_Oculus));
+		else
+			thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen_Kinect));
+
+		thread->Start();
+
+		Init();
+	}
+	catch (Exception^ ex) {
+		WRITE_ERROR
+	}
+}
+
+int NetLib::isOculus() {
+	return _isOculus;
+}
+
 //OK
 void NetLib::Init() {
 	IPAddress^ address;
@@ -64,8 +101,11 @@ void NetLib::Init() {
 	char c = 'y';
 	lsocket = gcnew Socket(endPoint->AddressFamily, SocketType::Stream, ProtocolType::Tcp);
 
-	while (c == 'y')
-	{
+	printf("Chcete pripojit vzdialeneho pouzivatela? [y]/[n]\n");
+	c = getchar();
+	getchar();
+
+	while (c == 'y') {
 		try {
 			lsocket->Connect(endPoint);
 		}
@@ -143,8 +183,6 @@ void NetLib::Listen_Oculus() {
 	}
 }
 
-
-
 void NetLib::Listen_Kinect() { //pre Kinect
 	IPAddress^ address;
 	address = IPAddress::Any;
@@ -195,40 +233,6 @@ void NetLib::Listen_Kinect() { //pre Kinect
 #endif
 
 		}
-	}
-}
-
-//ok
-NetLib::NetLib() {
-	try {
-		printf("Pokus o pripajanie sa.\n");
-		ExitThread = false;
-		//ip = nullptr;
-		ssocket = nullptr;
-		csocket = nullptr;
-
-		os = gcnew AppData_Mesh();
-		or = gcnew AppData_Mesh();
-
-		ol_s = gcnew AppData_Logika();
-		ol_r = gcnew AppData_Logika();
-
-		ZistiVelkostSerializovanehoObjektu();
-
-		_isOculus = INT16::Parse(ConfigurationSettings::AppSettings["isOculus"]);
-
-
-		if(_isOculus)
-			thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen_Oculus));
-		else
-			thread = gcnew Thread(gcnew ThreadStart(this, &NetLib::Listen_Kinect));
-
-		thread->Start();
-
-		Init();
-	}
-	catch (Exception^ ex) {
-		WRITE_ERROR
 	}
 }
 
@@ -322,16 +326,25 @@ void NetLib::Send(INuiFusionMesh *meshData) {
 			IFormatter^ formater = gcnew Formatters::Binary::BinaryFormatter();
 			formater->Serialize(ms, os);
 
-			const Vector3* temp;
-			meshData->GetVertices(&temp);
-
+			const Vector3* tempverticies;
+			const Vector3* tempnormals;
+			
+			meshData->GetVertices(&tempverticies);
 			os->VertexCount = meshData->VertexCount();
 			for (int i = 0, j = 0; i < os->VertexCount; i++, j += 3) {
-				os->vertices[j] = temp[i].x;
-				os->vertices[j + 1] = temp[i].y;
-				os->vertices[j + 2] = temp[i].z;
+				os->vertices[j] =	  tempverticies[i].x;
+				os->vertices[j + 1] = tempverticies[i].y;
+				os->vertices[j + 2] = tempverticies[i].z;
 			}
 			
+			meshData->GetNormals(&tempnormals);
+			os->NormalCount = meshData->NormalCount();
+			for (int i = 0, j = 0; i < os->NormalCount; i++, j += 3) {
+				os->normals[j] =	 tempnormals[i].x;
+				os->normals[j + 1] = tempnormals[i].y;
+				os->normals[j + 2] = tempnormals[i].z;
+			}
+
 			//formater->Serialize(ms, os);
 			array<unsigned char>^ buff = gcnew array<unsigned char>(ms->Length);
 			ms->Position = 0;
@@ -369,19 +382,31 @@ int NetLib::Get() {
 }
 
 //ok
-Vector3* NetLib::GetVrcholy(int *velkostpola) {
-	static Vector3 temp[VELKOSTPOLA];
-	*velkostpola = 0;
+Vector3* NetLib::GetVrcholy(int *vertexcount, int* normalcount, const Vector3** normals) {
+	static Vector3 tempVertices[VELKOSTPOLA];
+	static Vector3 tempNormals[VELKOSTPOLA];
+	*vertexcount = 0;
 	try {
 		if (_isConnected) {
-			*velkostpola = or ->VertexCount;
+			*vertexcount = or ->VertexCount;
 			int i = 0, j = 0;
 			for (i = 0, j = 0; ((i < or ->VertexCount) && (i < VELKOSTPOLA)); i++, j += 3) {
-				temp[i].x = or ->vertices[j];
-				temp[i].y = or ->vertices[j + 1];
-				temp[i].z = or ->vertices[j + 2];
+				tempVertices[i].x = or ->vertices[j];
+				tempVertices[i].y = or ->vertices[j + 1];
+				tempVertices[i].z = or ->vertices[j + 2];
 			}
-			*velkostpola = i;
+			*vertexcount = i;
+
+			*normalcount = or ->NormalCount;
+			for (i = 0, j = 0; ((i < or ->NormalCount) && (i < VELKOSTPOLA)); i++, j += 3) {
+				tempNormals[i].x = or ->normals[j];
+				tempNormals[i].y = or ->normals[j + 1];
+				tempNormals[i].z = or ->normals[j + 2];
+			}
+			*normalcount = i;
+
+			*normals = tempNormals;
+
 			//printf("Ahoj %d \n", i);
 			_newData = 0;
 		}
@@ -391,7 +416,7 @@ Vector3* NetLib::GetVrcholy(int *velkostpola) {
 		fprintf(ERROR_OUTPUT, "%s\n", ex->ToString());
 #endif
 	}
-	return temp;
+	return tempVertices;
 }
 
 void NetLib::Send(int Kocka,
