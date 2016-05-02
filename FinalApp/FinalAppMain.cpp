@@ -23,7 +23,9 @@
 
 const float kinect_position_height(0.78f);
 const int NUM_OF_HANOI_BRICKS(3);
-const float cubeSize(0.07f);
+const float cubeSize(0.04f);
+const float sphereSize(0.01f);
+float multiplier(0.5f);
 boolean hra_s_kockami = true; // hra s kockami ak true, hanojske veze ak false
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
@@ -168,6 +170,14 @@ void processKeyInput(float deltaTime) {
 	}
 	if (pressedKeys[GLFW_KEY_E]) {
 		viewer.rotate(Viewer::Rotation::Negative, deltaTime);
+	}
+	if (pressedKeys[GLFW_KEY_UP])
+	{
+		multiplier += 0.1;
+	}
+	if (pressedKeys[GLFW_KEY_DOWN])
+	{
+		multiplier -= 0.1;
 	}
 }
 
@@ -757,19 +767,23 @@ int main() {
 	}
 	
 	//inicialzacia kociek - treba zistit co tym chcel basnik povedat
-	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //fialova
+	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //fialova
 	cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
 	cube1.scale = glm::vec3(cubeSize, cubeSize, cubeSize);
-	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //modra
+	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //modra
 	cube2.position = glm::vec3(0.0f, 1.4f, -0.5f);
 	cube2.scale = glm::vec3(cubeSize, cubeSize, cubeSize);
-	cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(0.07, 0.07, 0.07)); //zlta
+	cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //zlta
 	cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
 	cube3.scale = glm::vec3(cubeSize, cubeSize, cubeSize);
 
 	float lastHandPosition = 0.0f;
 
 	static int vyvolena_kocka = random(0, 3);
+
+	printf("Kocky [k], Hanoj [h]\n");
+	char c = getchar();
+	getchar();
 
 	while (!ovrHmdHandle->shouldClose()) {		
 		t = glfwGetTime();
@@ -827,9 +841,7 @@ int main() {
 		//parameters.reconstructionParameters.voxelsPerMeter = 128;
 		kinectFacade->GetKinectData(data, KinectTypes::MeshData | KinectTypes::BodyData, parameters);
 
-		printf("Kocky [k], Hanoj [h]\n");
-		char c = getchar();
-		getchar();
+		
 
 		if (c == 'k' || c == 'K') {
 			hra_s_kockami = true;
@@ -874,7 +886,7 @@ int main() {
 
 					if (handRightState == HandState_Open) {
 						rightHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
-						grippedObjectIdRight = 0;
+						grippedObjectIdRight = -1;
 					}
 
 					if (handLeftState == HandState_Closed) {
@@ -887,8 +899,13 @@ int main() {
 
 					if (handLeftState == HandState_Open) {
 						leftHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
-						grippedObjectIdLeft = 0;
+						grippedObjectIdLeft = -1;
 					}
+
+					glm::vec3 bulgarianConstScale = glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier);
+					cube1.model = glm::translate(glm::vec3(cube1.position.x, cube1.position.y, cube1.position.z)) * glm::scale(bulgarianConstScale);
+					cube2.model = glm::translate(glm::vec3(cube2.position.x, cube2.position.y, cube2.position.z)) * glm::scale(bulgarianConstScale);
+					cube3.model = glm::translate(glm::vec3(cube3.position.x, cube3.position.y, cube3.position.z)) * glm::scale(bulgarianConstScale);
 				}
 				else {					//////// hanojske veze
 					if (handRightState == HandState_Closed) {
@@ -951,10 +968,9 @@ int main() {
 					}
 				}
 
-				
 				headPos.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(headPosition.X, headPosition.Y + kinect_position_height, headPosition.Z)), glm::vec3(0.1, 0.1, 0.1));
-				leftHandPos.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
-				rightHandPos.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(0.05, 0.05, 0.05));
+				leftHandPos.model = glm::scale(glm::translate(glm::mat4(1), -leftHandRelativeToHead), glm::vec3(sphereSize * multiplier, sphereSize * multiplier, sphereSize * multiplier));
+				rightHandPos.model = glm::scale(glm::translate(glm::mat4(1), -rightHandRelativeToHead), glm::vec3(sphereSize * multiplier, sphereSize * multiplier, sphereSize * multiplier));
 				
 				//printf("%f %f %f\n", handLeftPosition.X, handLeftPosition.Y, handLeftPosition.Z);
 				
@@ -987,19 +1003,19 @@ int main() {
 							cube3.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 					if (cube1.position.y > treshhold_reset || cube2.position.y > treshhold_reset || cube3.position.y > treshhold_reset) {
 						vyvolena_kocka = random(0, 3);
-						cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //fialova
+						cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier)); //fialova
 						cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
-						cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //modra
+						cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier)); //modra
 						cube2.position = glm::vec3(0.0f, 1.4f, -0.5f);
-						cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //zlta
+						cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier)); //zlta
 						cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
 
 						cube1.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
 						cube2.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
 						cube3.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
 
-						grippedObjectIdLeft = 0;
-						grippedObjectIdRight = 0;
+						grippedObjectIdLeft = -1;
+						grippedObjectIdRight = -1;
 					}
 				}
 			}

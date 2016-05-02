@@ -155,6 +155,9 @@
     <ProjectReference Include="..\VX_Kinect_Lib\VX_Kinect_Lib.vcxproj">
       <Project>{28cc8f17-ca4e-421f-84c1-c4efa180c76e}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\VX_Network_Lib\VX_Network_Lib.vcxproj">
+      <Project>{0c927629-16c9-43c9-b71a-85e369814cac}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\VX_OVR_Lib\VX_OVR_Lib.vcxproj">
       <Project>{84f8e4a1-037f-4e72-8382-bd648d48b81b}</Project>
     </ProjectReference>
