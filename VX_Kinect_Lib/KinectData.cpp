@@ -4,7 +4,7 @@
 #include "KinectData.h"
 
 KinectData::KinectData()
-	: colorData(nullptr), depthData(nullptr), infraredData(nullptr), surfaceData(nullptr), bodies{ 0 }, meshData(nullptr)
+	: colorData(nullptr), depthData(nullptr), infraredData(nullptr), surfaceData(nullptr), bodies{ 0 }, meshData(nullptr), colorMeshData(nullptr)
 {}
 
 KinectData::~KinectData()

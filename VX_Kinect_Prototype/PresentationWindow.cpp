@@ -61,7 +61,7 @@ void PresentationWindow::KeyCallback(GLFWwindow* window, int key, int scancode, 
 void PresentationWindow::DrawKinectData()
 {
 	KinectData myData;
-	KinectTypes myTypes = KinectTypes::ColorData | KinectTypes::InfraredData | KinectTypes::DepthData | KinectTypes::BodyData | KinectTypes::SurfaceData | KinectTypes::MeshData;
+	KinectTypes myTypes = KinectTypes::ColorData | KinectTypes::InfraredData | KinectTypes::DepthData | KinectTypes::BodyData | KinectTypes::SurfaceData | KinectTypes::MeshData | KinectTypes::ColorMeshData;
 
 	kinectFacade->GetKinectData(myData, myTypes, myParameters);
 

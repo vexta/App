@@ -304,43 +304,121 @@ void KinectFacade::GetFusionData(UINT16 *rawDepthBuffer, KinectParameters parame
 	reconstruction->GetCurrentWorldToCameraTransform(&worldToCameraTransform);
 	hr = reconstruction->ProcessFrame(smoothDepthFloatImageFrame, NUI_FUSION_DEFAULT_ALIGN_ITERATION_COUNT, NUI_FUSION_DEFAULT_INTEGRATION_WEIGHT, nullptr, &worldToCameraTransform);
 
-	// calculate mesh
-	reconstruction->CalculateMesh(parameters.voxelStep, meshData);
+	if ((types & KinectTypes::MeshData) != KinectTypes::NoData)
+	{
+		// calculate mesh
+		reconstruction->CalculateMesh(parameters.voxelStep, meshData);
+	}
 
-	// point cloud
-	NUI_FUSION_IMAGE_FRAME* pointCloudImageFrame;
-	hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_POINT_CLOUD, width, height, nullptr, &pointCloudImageFrame);
-	hr = reconstruction->CalculatePointCloud(pointCloudImageFrame, &worldToCameraTransform);
+	if ((types & KinectTypes::SurfaceData) != KinectTypes::NoData)
+	{
+		// point cloud
+		NUI_FUSION_IMAGE_FRAME* pointCloudImageFrame;
+		hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_POINT_CLOUD, width, height, nullptr, &pointCloudImageFrame);
+		hr = reconstruction->CalculatePointCloud(pointCloudImageFrame, &worldToCameraTransform);
 
-	// surface
-	hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_COLOR, width, height, nullptr, destination);
+		// surface
+		hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_COLOR, width, height, nullptr, destination);
 
-	// normals
-	NUI_FUSION_IMAGE_FRAME* normalImageFrame;
-	hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_COLOR, width, height, nullptr, &normalImageFrame);
+		// normals
+		NUI_FUSION_IMAGE_FRAME* normalImageFrame;
+		hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_COLOR, width, height, nullptr, &normalImageFrame);
 
-	// shading point cloud
-	Matrix4 worldToBGRTransform = { 0.0f };
-	worldToBGRTransform.M11 = parameters.reconstructionParameters.voxelsPerMeter / parameters.reconstructionParameters.voxelCountX;
-	worldToBGRTransform.M22 = parameters.reconstructionParameters.voxelsPerMeter / parameters.reconstructionParameters.voxelCountY;
-	worldToBGRTransform.M33 = parameters.reconstructionParameters.voxelsPerMeter / parameters.reconstructionParameters.voxelCountZ;
-	worldToBGRTransform.M41 = 0.5f;
-	worldToBGRTransform.M42 = 0.5f;
-	worldToBGRTransform.M43 = 0.0f;
-	worldToBGRTransform.M44 = 1.0f;
+		// shading point cloud
+		Matrix4 worldToBGRTransform = { 0.0f };
+		worldToBGRTransform.M11 = parameters.reconstructionParameters.voxelsPerMeter / parameters.reconstructionParameters.voxelCountX;
+		worldToBGRTransform.M22 = parameters.reconstructionParameters.voxelsPerMeter / parameters.reconstructionParameters.voxelCountY;
+		worldToBGRTransform.M33 = parameters.reconstructionParameters.voxelsPerMeter / parameters.reconstructionParameters.voxelCountZ;
+		worldToBGRTransform.M41 = 0.5f;
+		worldToBGRTransform.M42 = 0.5f;
+		worldToBGRTransform.M43 = 0.0f;
+		worldToBGRTransform.M44 = 1.0f;
 
-	// process
-	hr = NuiFusionShadePointCloud(pointCloudImageFrame, &worldToCameraTransform, &worldToBGRTransform, *destination, normalImageFrame);
+		// process
+		hr = NuiFusionShadePointCloud(pointCloudImageFrame, &worldToCameraTransform, &worldToBGRTransform, *destination, normalImageFrame);
+
+		NuiFusionReleaseImageFrame(pointCloudImageFrame);
+		NuiFusionReleaseImageFrame(normalImageFrame);
+	}
 
 	// release resources
 	reconstruction->Release();
 	NuiFusionReleaseImageFrame(depthFloatImageFrame);
 	NuiFusionReleaseImageFrame(smoothDepthFloatImageFrame);
-	NuiFusionReleaseImageFrame(pointCloudImageFrame);
-	NuiFusionReleaseImageFrame(normalImageFrame);
 }
 
-void KinectFacade::GetKinectData(KinectData &kinectData, KinectTypes types, KinectParameters parameters)
+void KinectFacade::GetFusionData(UINT16 *rawDepthBuffer, KinectParameters parameters, KinectData& data)
+{
+	HRESULT hr;
+
+	INuiFusionColorMesh **colorMeshData = &(data.colorMeshData);
+	NUI_FUSION_IMAGE_FRAME **destination = &(data.surfaceData);
+
+	// create reconstruction
+	Matrix4 worldToCameraTransform;
+	KinectHelper::SetIdentityMatrix(worldToCameraTransform);
+
+	INuiFusionColorReconstruction *colorReconstruction;
+	hr = NuiFusionCreateColorReconstruction(&parameters.reconstructionParameters, NUI_FUSION_RECONSTRUCTION_PROCESSOR_TYPE_AMP, -1, &worldToCameraTransform, &colorReconstruction);
+	colorReconstruction->GetCurrentWorldToCameraTransform(&worldToCameraTransform);
+
+	// create depth float image frame
+	NUI_FUSION_IMAGE_FRAME* depthFloatImageFrame;
+	hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_FLOAT, width, height, nullptr, &depthFloatImageFrame);
+	hr = colorReconstruction->DepthToDepthFloatFrame(rawDepthBuffer, width * height * sizeof(UINT16), depthFloatImageFrame, parameters.minimumDepth, parameters.maximumDepth, true);
+
+	// remove noise
+	NUI_FUSION_IMAGE_FRAME* smoothDepthFloatImageFrame;
+	hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_FLOAT, width, height, nullptr, &smoothDepthFloatImageFrame);
+	hr = colorReconstruction->SmoothDepthFloatFrame(depthFloatImageFrame, smoothDepthFloatImageFrame, 1, 0.04f);
+
+	// fill the color image frame with color-depth mapping table
+	// create color frame for integration
+	NUI_FUSION_IMAGE_FRAME* downsampledColorFrame;
+	hr = NuiFusionCreateImageFrame(NUI_FUSION_IMAGE_TYPE_COLOR, width, height, nullptr, &downsampledColorFrame);
+
+	BYTE* rawColorData = data.colorData->pFrameBuffer->pBits;
+	BYTE* rawDownsampledColorData = downsampledColorFrame->pFrameBuffer->pBits;
+	ColorSpacePoint *colorPoints = new ColorSpacePoint[width * height];
+
+	ICoordinateMapper* coordinateMapper = nullptr;
+	kinectSensor->get_CoordinateMapper(&coordinateMapper);
+
+	coordinateMapper->MapDepthFrameToColorSpace(width * height, rawDepthBuffer, width * height, colorPoints);
+
+	for (unsigned int i = 0; i < width * height; ++i)
+	{
+		const ColorSpacePoint& currentColorSpacePoint = colorPoints[i];
+		if (currentColorSpacePoint.X >= 0 && currentColorSpacePoint.X < colorWidth && currentColorSpacePoint.Y >= 0 && currentColorSpacePoint.Y < colorHeight)
+		{
+			int idx = 4 * ((int)currentColorSpacePoint.X + colorWidth * (int)currentColorSpacePoint.Y);
+			rawDownsampledColorData[4 * i] = rawColorData[idx];
+			rawDownsampledColorData[4 * i + 1] = rawColorData[idx + 1];
+			rawDownsampledColorData[4 * i + 2] = rawColorData[idx + 2];
+			rawDownsampledColorData[4 * i + 3] = rawColorData[idx + 3];
+		}
+		else
+		{
+			rawDownsampledColorData[4 * i] = 0;
+			rawDownsampledColorData[4 * i + 1] = 0;
+			rawDownsampledColorData[4 * i + 2] = 0;
+			rawDownsampledColorData[4 * i + 3] = 0;
+		}
+	}
+
+	hr = colorReconstruction->ProcessFrame(smoothDepthFloatImageFrame, downsampledColorFrame, NUI_FUSION_DEFAULT_ALIGN_ITERATION_COUNT, NUI_FUSION_DEFAULT_INTEGRATION_WEIGHT, 1, nullptr, &worldToCameraTransform);
+
+	// calculate mesh
+	colorReconstruction->CalculateMesh(parameters.voxelStep, colorMeshData);
+
+	// release resources
+	colorReconstruction->Release();
+	NuiFusionReleaseImageFrame(depthFloatImageFrame);
+	NuiFusionReleaseImageFrame(smoothDepthFloatImageFrame);
+	NuiFusionReleaseImageFrame(downsampledColorFrame);
+}
+
+void KinectFacade::GetKinectData(KinectData &kinectData, KinectTypes types, KinectParameters &parameters)
 {
 	IMultiSourceFrame* multiSourceFrame = NULL;
 	if (SUCCEEDED(multiSourceFrameReader->AcquireLatestFrame(&multiSourceFrame))) {
@@ -368,10 +446,19 @@ void KinectFacade::GetKinectData(KinectData &kinectData, KinectTypes types, Kine
 			GetInfraredData(multiSourceFrame, &kinectData.infraredData);
 		}
 
-		if ((types & (KinectTypes::MeshData | KinectTypes::SurfaceData)) != KinectTypes::NoData)
+		if ((types & (KinectTypes::MeshData | KinectTypes::ColorMeshData | KinectTypes::SurfaceData)) != KinectTypes::NoData)
 		{
 			if (rawDepthBuffer == nullptr) rawDepthBuffer = GetRawDepthData(multiSourceFrame, rawDepthCapacity);
-			if (rawDepthBuffer) GetFusionData(rawDepthBuffer, parameters, &kinectData.meshData, &kinectData.surfaceData, types);
+			if ((types & (KinectTypes::MeshData | KinectTypes::SurfaceData)) != KinectTypes::NoData)
+			{
+				if (rawDepthBuffer) GetFusionData(rawDepthBuffer, parameters, &kinectData.meshData, &kinectData.surfaceData, types);
+			}
+			if((types & KinectTypes::ColorMeshData) != KinectTypes::NoData)
+			{
+				if (kinectData.colorData == nullptr) GetColorData(multiSourceFrame, &kinectData.colorData);
+				if (rawDepthBuffer) GetFusionData(rawDepthBuffer, parameters, kinectData);
+			}
+
 		}
 
 		if (rawDepthBuffer) delete[] rawDepthBuffer;

@@ -24,6 +24,7 @@ class KinectFacade
 	UINT16 *GetRawDepthData(IMultiSourceFrame * frame, UINT &capacity);
 	void GetBodyData(IMultiSourceFrame *frame, IBody **bodies);
 	void GetFusionData(UINT16 *rawDepthBuffer, KinectParameters parameters, INuiFusionMesh **meshData, NUI_FUSION_IMAGE_FRAME **destination, KinectTypes types);
+	void GetFusionData(UINT16 *rawDepthBuffer, KinectParameters parameters, KinectData& data);
 	HRESULT CreateFrame(NUI_FUSION_IMAGE_TYPE frameType, unsigned int imageWidth, unsigned int imageHeight, NUI_FUSION_IMAGE_FRAME **ppImageFrame);
 public:
 	static const int width;
@@ -33,6 +34,6 @@ public:
 
 	KinectFacade();
 	~KinectFacade();
-	void GetKinectData(KinectData &kinectData, KinectTypes types, KinectParameters parameters);
+	void GetKinectData(KinectData &kinectData, KinectTypes types, KinectParameters &parameters);
 };
 

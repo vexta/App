@@ -8,6 +8,7 @@ struct KinectData
 	NUI_FUSION_IMAGE_FRAME *surfaceData;
 	IBody *bodies[BODY_COUNT]; // array of IBody pointers
 	INuiFusionMesh *meshData;
+	INuiFusionColorMesh *colorMeshData;
 
 	KinectData();
 	~KinectData();

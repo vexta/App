@@ -7,7 +7,8 @@ enum class KinectTypes : int
 	InfraredData = 1 << 2,
 	SurfaceData = 1 << 3,
 	BodyData = 1 << 4,
-	MeshData = 1 << 5
+	MeshData = 1 << 5,
+	ColorMeshData = 1 << 6
 };
 
 inline constexpr KinectTypes operator| (KinectTypes left, KinectTypes right)
