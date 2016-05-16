@@ -25,7 +25,8 @@ const float kinect_position_height(0.78f);
 const int NUM_OF_HANOI_BRICKS(3);
 const float cubeSize(0.04f);
 const float sphereSize(0.01f);
-float multiplier(0.5f);
+float multiplier(1.0f);
+byte UXhelper(1);
 boolean hra_s_kockami = true; // hra s kockami ak true, hanojske veze ak false
 
 std::shared_ptr<vxOvr::OVRHMDHandle> ovrHmdHandle;
@@ -62,7 +63,7 @@ struct sceneObject {
 };
 
 int fromStack = -1;		//z ktoreho stacku sme zobrali aktualnu kocku ktoru drzim v ruke
-float sticksSpan = 0.35; //ak by sme chceli parametricky: 0.07 + (NUM_OF_HANOI_BRICKS - 1)*0.04;
+float sticksSpan = 0.18; //ak by sme chceli parametricky: 0.07 + (NUM_OF_HANOI_BRICKS - 1)*0.04;
 float stickPosition[3] = { -sticksSpan, 0.0f, sticksSpan }; //x-ova pozicia tyciek
 
 struct hanoiBrick {
@@ -152,6 +153,8 @@ sceneObject floorMesh, kinectMesh,
 hanoiBrick hanoiBricks[NUM_OF_HANOI_BRICKS];
 
 
+void hanoiReset();
+
 void processKeyInput(float deltaTime) {
 	if (pressedKeys[GLFW_KEY_W]) {
 		viewer.move(Viewer::Direction::Forward, deltaTime);
@@ -173,12 +176,57 @@ void processKeyInput(float deltaTime) {
 	}
 	if (pressedKeys[GLFW_KEY_UP])
 	{
-		multiplier += 0.1;
+		multiplier += 0.25;
 	}
 	if (pressedKeys[GLFW_KEY_DOWN])
 	{
-		multiplier -= 0.1;
+		multiplier -= 0.25;
 	}
+	if (pressedKeys[GLFW_KEY_KP_1])
+	{
+		multiplier = 0.25;
+	}
+	if (pressedKeys[GLFW_KEY_KP_2])
+	{
+		multiplier = 0.5;
+	}
+	if (pressedKeys[GLFW_KEY_KP_3])
+	{
+		multiplier = 1;
+	}
+	if (pressedKeys[GLFW_KEY_KP_4])
+	{
+		multiplier = 1.5;
+	}
+	if (pressedKeys[GLFW_KEY_KP_5])
+	{
+		multiplier = 2.5;
+	}
+	if (pressedKeys[GLFW_KEY_KP_6])
+	{
+		multiplier = 3;
+	}
+	if (pressedKeys[GLFW_KEY_H])
+	{
+		hra_s_kockami = false;
+	}
+	if (pressedKeys[GLFW_KEY_K])
+	{
+		hra_s_kockami = true;
+	}
+	if (pressedKeys[GLFW_KEY_O])
+	{
+		if (UXhelper != 0)
+			printf("Pomoc pri presuvani kocky vypnuta. \n");
+		UXhelper = 0;
+	}
+	if (pressedKeys[GLFW_KEY_P])
+	{
+		if (UXhelper != 1)
+			printf("Pomoc pri presuvani kocky zapnuta. \n");
+		UXhelper = 1;
+	}
+
 }
 
 std::vector<float> generateIcosphere(int iterations) {
@@ -288,9 +336,15 @@ std::vector<float> generateIcosphere(int iterations) {
 };
 
 int compareHandPosWithObject(sceneObject &object, glm::vec3 handRelativeToHead, int grippedObjectId, int objectId) {
-	if (object.position.x + cubeSize > -handRelativeToHead.x && object.position.x - cubeSize < -handRelativeToHead.x &&
-		object.position.y + cubeSize > -handRelativeToHead.y && object.position.y - cubeSize < -handRelativeToHead.y &&
-		object.position.z + cubeSize > -handRelativeToHead.z && object.position.z - cubeSize < -handRelativeToHead.z &&
+	if (grippedObjectId == objectId && UXhelper)
+	{
+		object.model = glm::scale(glm::translate(glm::mat4(1), -handRelativeToHead), object.scale);
+		object.position = -handRelativeToHead;
+		return objectId;
+	}
+	else if (object.position.x + cubeSize  * multiplier > -handRelativeToHead.x && object.position.x - cubeSize  * multiplier < -handRelativeToHead.x &&
+		object.position.y + cubeSize  * multiplier > -handRelativeToHead.y && object.position.y - cubeSize  * multiplier < -handRelativeToHead.y &&
+		object.position.z + cubeSize  * multiplier > -handRelativeToHead.z && object.position.z - cubeSize  * multiplier < -handRelativeToHead.z &&
 		(grippedObjectId == -1 || grippedObjectId == objectId)) {
 
 		object.model = glm::scale(glm::translate(glm::mat4(1), -handRelativeToHead), object.scale);
@@ -303,6 +357,15 @@ int compareHandPosWithObject(sceneObject &object, glm::vec3 handRelativeToHead, 
 
 //sorry inak sa nedalo
 int compareHandPosWithObject(sceneObject &object, glm::vec3 handRelativeToHead, int grippedObjectId, int objectId, int stackNo) {
+	if (grippedObjectId == objectId && UXhelper)
+	{
+		object.model = glm::scale(glm::translate(glm::mat4(1), -handRelativeToHead), object.scale);
+		object.position = -handRelativeToHead;
+
+		fromStack = stackNo;
+
+		return objectId;
+	}
 	if (object.position.x + cubeSize > -handRelativeToHead.x && object.position.x - cubeSize < -handRelativeToHead.x &&
 		object.position.y + cubeSize > -handRelativeToHead.y && object.position.y - cubeSize < -handRelativeToHead.y &&
 		object.position.z + cubeSize > -handRelativeToHead.z && object.position.z - cubeSize < -handRelativeToHead.z &&
@@ -317,6 +380,27 @@ int compareHandPosWithObject(sceneObject &object, glm::vec3 handRelativeToHead, 
 	}
 	return grippedObjectId;
 };
+
+/*
+void hanoiReset()
+{
+	float yPos;
+	for (int i = 0; i < NUM_OF_HANOI_BRICKS; i++) {
+		yPos = (NUM_OF_HANOI_BRICKS - i - 1) * cubeSize;
+		hanoiBricks[i].object.model = glm::translate(glm::vec3(0.0f, 1.4f + yPos, -0.5f)) * glm::scale(glm::vec3(cubeSize + i*0.04, cubeSize, cubeSize));
+	}
+
+	for (int i = 0; i < 3; i++) {
+		while (stacks[i].size())
+			stacks[i].pop();
+	}
+
+	for (int i = NUM_OF_HANOI_BRICKS - 1; i >= 0; i--) {
+		hanoiBricks[i].number = i;
+		stacks[1].push(i);
+	}
+}
+*/
 
 int getStackNumberByPosition(float x) {
 	int stackNumber = -1;
@@ -722,7 +806,8 @@ void render(ovrEyeType eye) {
 	shader.setUniformValue("viewPos", viewer.position.x, viewer.position.y + ovrHmdHandle->getUserHeight(), viewer.position.z);
 
 	floorMesh.render(shader);
-	headPos.render(shader);
+	//if(komunikacia.isOculus())
+	//headPos.render(shader);
 	leftHandPos.render(shader);
 	rightHandPos.render(shader);
 	kinectMesh.render(shader);
@@ -760,31 +845,70 @@ int main() {
 	double t, t0 = glfwGetTime();
 	int grippedObjectIdRight = -1, grippedObjectIdLeft = -1; 	//cislo objektu, ktory je prave uchopeny
 
-	std::stack<int> stacks[3];
+	std::stack<int> stacks[3]; //vytiahnute von
 
 	for (int i = NUM_OF_HANOI_BRICKS - 1; i >= 0; i--) {
 		stacks[1].push(hanoiBricks[i].number);
 	}
 	
 	//inicialzacia kociek - treba zistit co tym chcel basnik povedat
-	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //fialova
+	cube1.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(-0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier)); //fialova
 	cube1.position = glm::vec3(-0.15f, 1.4f, -0.5f);
 	cube1.scale = glm::vec3(cubeSize, cubeSize, cubeSize);
-	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //modra
+	cube2.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.4f, -0.5f)), glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier)); //modra
 	cube2.position = glm::vec3(0.0f, 1.4f, -0.5f);
 	cube2.scale = glm::vec3(cubeSize, cubeSize, cubeSize);
-	cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize, cubeSize, cubeSize)); //zlta
+	cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier)); //zlta
 	cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
 	cube3.scale = glm::vec3(cubeSize, cubeSize, cubeSize);
+
+	cube1.diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
+	cube2.diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
+	cube3.diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
 
 	float lastHandPosition = 0.0f;
 
 	static int vyvolena_kocka = random(0, 3);
 
-	printf("Kocky [k], Hanoj [h]\n");
+
+	printf("Bohyb v scene:\n");
+	printf("   Dopredu        [w]\n");
+	printf("   Dozadu         [s]\n");
+	printf("   Dolava         [a]\n");
+	printf("   Doprava        [d]\n\n");
+
+	printf("Otacanie sceny:\n");
+	printf("   Vlavo          [q]\n");
+	printf("   Vpravo         [e]\n\n");
+
+	printf("Zmena velkosti objektov v scene (predvolene zapnuta):\n");
+	printf("   Velkost 1-6    [1]-[6] (na numerickej klavesnici)\n");
+	printf("   Zvacsenie      [SIPKA_hore]\n");
+	printf("   Zmensenie      [SIPKA_DOLE]\n\n");
+
+	printf("Pomoc pri presuvani kocky:\n");
+	printf("   Zapnut         [p]\n");
+	printf("   vypnut         [o]\n\n\n");
+
+	printf("Prepinanie medzi minihrami:\n");
+	printf("   Hanojske veze  [p]\n");
+	printf("   Kocky          [o]\n\n\n");
+
+
+
+	/*
+	printf("Vyberte si minihru: Kocky [k], Hanoj [h]:\n");
 	char c = getchar();
 	getchar();
 
+	if (c == 'k' || c == 'K') {
+		hra_s_kockami = true;
+	}
+	else if (c == 'h' || c == 'H') {
+
+		hra_s_kockami = false;
+	}
+	*/
 	while (!ovrHmdHandle->shouldClose()) {		
 		t = glfwGetTime();
 		processKeyInput(t - t0);
@@ -843,12 +967,7 @@ int main() {
 
 		
 
-		if (c == 'k' || c == 'K') {
-			hra_s_kockami = true;
-		}
-		else if (c == 'h' || c == 'H') {
-			hra_s_kockami = false;
-		}
+
 
 		if (data.bodies && komunikacia.isOculus())
 		{
@@ -923,13 +1042,13 @@ int main() {
 						rightHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
 						if (grippedObjectIdRight != -1) {
 							int overStack = getStackNumberByPosition(hanoiBricks[stacks[fromStack].top()].object.position.x);
-
+							
 							//ak chytena kocka mimo tyciek, daj ju naspat
-							if (overStack == -1) {
+							if (overStack == -1 && 0) {
 								hanoiBricks[stacks[fromStack].top()].object.model = glm::translate(glm::vec3(stickPosition[fromStack], 1.4f + (stacks[fromStack].size() - 1)*cubeSize, -0.5f)) * glm::scale(hanoiBricks[stacks[fromStack].top()].object.scale);
 								hanoiBricks[stacks[fromStack].top()].object.position = glm::vec3(stickPosition[fromStack], 1.4f + (stacks[fromStack].size() - 1)*cubeSize, -0.5f);
 							}
-
+							
 							//ak je nad tyckami
 							else {
 								//a je vrchna kocka na tycke vacsia ako kladena kocka, poloz ju na tyc
@@ -950,7 +1069,7 @@ int main() {
 						}
 						grippedObjectIdRight = -1;
 					}
-
+/*
 					if (handLeftState == HandState_Closed) {
 						leftHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
 
@@ -965,6 +1084,50 @@ int main() {
 
 						
 						//printf("lava nad stackom %d, poz[%f, %f, %f]\n", getStackNumberByPosition(leftHand.position.x), leftHandPos.position.x, leftHandPos.position.y, leftHandPos.position.z);
+					}
+*/
+					if (handLeftState == HandState_Closed) {
+						//printf("ruka zavreta\n");
+						leftHandPos.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
+
+						for (int i = 0; i < 3; i++) {
+							if (!stacks[i].empty()) {
+								grippedObjectIdLeft = compareHandPosWithObject(hanoiBricks[stacks[i].top()].object, leftHandRelativeToHead, grippedObjectIdLeft, stacks[i].top(), i);
+							}
+						}
+					}
+
+					if (handLeftState == HandState_Open) {
+						leftHandPos.diffuse = glm::vec3(0.0f, 1.0f, 0.0f);
+						if (grippedObjectIdLeft != -1) {
+							int overStack = getStackNumberByPosition(hanoiBricks[stacks[fromStack].top()].object.position.x);
+
+							
+							//ak chytena kocka mimo tyciek, daj ju naspat
+							if (overStack == -1 && 0) {
+								hanoiBricks[stacks[fromStack].top()].object.model = glm::translate(glm::vec3(stickPosition[fromStack], 1.4f + (stacks[fromStack].size() - 1)*cubeSize, -0.5f)) * glm::scale(hanoiBricks[stacks[fromStack].top()].object.scale);
+								hanoiBricks[stacks[fromStack].top()].object.position = glm::vec3(stickPosition[fromStack], 1.4f + (stacks[fromStack].size() - 1)*cubeSize, -0.5f);
+							}
+							
+							//ak je nad tyckami
+							else {
+								//a je vrchna kocka na tycke vacsia ako kladena kocka, poloz ju na tyc
+								if (stacks[overStack].empty() || stacks[overStack].top() > stacks[fromStack].top()) {
+									hanoiBricks[stacks[fromStack].top()].object.model = glm::translate(glm::vec3(stickPosition[overStack], 1.4f + stacks[overStack].size() * cubeSize, -0.5f)) * glm::scale(hanoiBricks[stacks[fromStack].top()].object.scale);
+									hanoiBricks[stacks[fromStack].top()].object.position = glm::vec3(stickPosition[overStack], 1.4f + stacks[overStack].size() * cubeSize, -0.5f);
+
+									stacks[overStack].push(stacks[fromStack].top());
+									stacks[fromStack].pop();
+
+								}
+								//ale vrchna kocka na tycke je mensia, vrat ju naspat
+								else {
+									hanoiBricks[stacks[fromStack].top()].object.model = glm::translate(glm::vec3(stickPosition[fromStack], 1.4f + (stacks[fromStack].size() - 1)*cubeSize, -0.5f)) * glm::scale(hanoiBricks[stacks[fromStack].top()].object.scale);
+									hanoiBricks[stacks[fromStack].top()].object.position = glm::vec3(stickPosition[fromStack], 1.4f + (stacks[fromStack].size() - 1)*cubeSize, -0.5f);
+								}
+							}
+						}
+						grippedObjectIdLeft = -1;
 					}
 				}
 
@@ -1010,16 +1173,24 @@ int main() {
 						cube3.model = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.15f, 1.4f, -0.5f)), glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier)); //zlta
 						cube3.position = glm::vec3(0.15f, 1.4f, -0.5f);
 
-						cube1.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
-						cube2.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
-						cube3.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+						cube1.diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
+						cube2.diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
+						cube3.diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
 
 						grippedObjectIdLeft = -1;
 						grippedObjectIdRight = -1;
 					}
 				}
 			}
+			else if (!jointsForFirstPerson && hra_s_kockami) {
+					glm::vec3 bulgarianConstScale = glm::vec3(cubeSize * multiplier, cubeSize * multiplier, cubeSize * multiplier);
+					cube1.model = glm::translate(glm::vec3(cube1.position.x, cube1.position.y, cube1.position.z)) * glm::scale(bulgarianConstScale);
+					cube2.model = glm::translate(glm::vec3(cube2.position.x, cube2.position.y, cube2.position.z)) * glm::scale(bulgarianConstScale);
+					cube3.model = glm::translate(glm::vec3(cube3.position.x, cube3.position.y, cube3.position.z)) * glm::scale(bulgarianConstScale);
+				}
 		}
+		
+
 
 		//if (data.bodies && data.meshData) {
 		//	int index = 0;
@@ -1077,7 +1248,7 @@ int main() {
 		//	}
 		//}
 
-		if (komunikacia.isOculus()) {
+		if (komunikacia.isOculus() ) { //&& hra_s_kockami
 			//if (data.meshData) {	// if mesh data successfully retrieved
 				const Vector3 *vertices = nullptr, *normals = nullptr;
 				//data.meshData->GetVertices(&vertices);

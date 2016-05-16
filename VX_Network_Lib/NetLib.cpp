@@ -48,7 +48,6 @@ void NetLib::ZistiVelkostSerializovanehoObjektu() {
 //ok
 NetLib::NetLib() {
 	try {
-		printf("Pokus o pripajanie sa.\n");
 		ExitThread = false;
 		//ip = nullptr;
 		ssocket = nullptr;
@@ -107,6 +106,7 @@ void NetLib::Init() {
 
 	while (c == 'y') {
 		try {
+			printf("Pokus o pripajanie sa.\n");
 			lsocket->Connect(endPoint);
 		}
 		catch (Exception^ ex) {
